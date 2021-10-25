@@ -40,7 +40,7 @@ class patient:
         self.path = files_path
         self.modalities = None
         self.seizures_csv = None
-        self.seizures = {}
+        self.seizures = []
 
 
     def get_modalities_available(self):
@@ -82,4 +82,4 @@ class patient:
 
        # divide by 1000 because it is in milliseconds and add the timezone
        #return [{'start_time': int(df.iloc[isz]['start_time'])/1000, 'end_time': int(df.iloc[isz]['end_time'])/1000} for isz in list(df.index)]
-       return [{'start_time': int(df.iloc[isz]['start_time'])/1000 + (int(df.iloc[isz]['timezone'])*3600), 'end_time': int(df.iloc[isz]['end_time'])/1000 + (int(df.iloc[isz]['timezone'])*3600)} for isz in list(df.index)]
+       return [{'start_time': int(df.iloc[isz]['start_time'])/1000 + (int(df.iloc[isz]['timezone'])*3600), 'end_time': int(df.iloc[isz]['end_time'])/1000 + (int(df.iloc[isz]['timezone'])*3600), 'type': df.iloc[isz]['note']} for isz in list(df.index)]

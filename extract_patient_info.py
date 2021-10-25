@@ -40,7 +40,7 @@ def get_possible_files(list_files, sz_event):
     
 
 
-def get_seizure_timestamps(file_path, sz_event):
+def get_seizure_timestamps(file_path, sz_event, mod):
        """
        Parameters
        ----------
@@ -80,7 +80,7 @@ def get_seizure_timestamps(file_path, sz_event):
        edf.close()
 
        if (sz_event['start_time'] > end_time):
-              print(f'        seizure not recorded for this modality')
+              print(f'             seizure not recorded for {mod} modality')
               return None
 
        else:
@@ -92,7 +92,7 @@ def get_seizure_timestamps(file_path, sz_event):
 
               start_ind = math.floor((aux_start - start_time) * fs)
               end_ind = math.ceil((aux_end - start_time) * fs)
-              return {'sz_start': start_ind, 'sz_end': end_ind}
+              return {'sz_start': start_ind, 'sz_end': end_ind, 'type': sz_event['type']}
 
 
     
