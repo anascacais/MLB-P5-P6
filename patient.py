@@ -1,8 +1,13 @@
+# from this project
+import utils
+
 # built-in
 import os
+import pickle
 
 # third-party
 import pandas as pd
+import pyedflib as pyedf
 
 class patient:
     """
@@ -82,4 +87,3 @@ class patient:
 
        # divide by 1000 because it is in milliseconds and add the timezone
        #return [{'start_time': int(df.iloc[isz]['start_time'])/1000, 'end_time': int(df.iloc[isz]['end_time'])/1000} for isz in list(df.index)]
-       return [{'start_time': int(df.iloc[isz]['start_time'])/1000 + (int(df.iloc[isz]['timezone'])*3600), 'end_time': int(df.iloc[isz]['end_time'])/1000 + (int(df.iloc[isz]['timezone'])*3600), 'type': df.iloc[isz]['note']} for isz in list(df.index)]
