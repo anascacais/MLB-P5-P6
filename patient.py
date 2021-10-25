@@ -1,8 +1,13 @@
+# from this project
+import utils
+
 # built-in
 import os
+import pickle
 
 # third-party
 import pandas as pd
+import pyedflib as pyedf
 
 class patient:
     """
@@ -83,3 +88,52 @@ class patient:
        # divide by 1000 because it is in milliseconds and add the timezone
        #return [{'start_time': int(df.iloc[isz]['start_time'])/1000, 'end_time': int(df.iloc[isz]['end_time'])/1000} for isz in list(df.index)]
        return [{'start_time': int(df.iloc[isz]['start_time'])/1000 + (int(df.iloc[isz]['timezone'])*3600), 'end_time': int(df.iloc[isz]['end_time'])/1000 + (int(df.iloc[isz]['timezone'])*3600)} for isz in list(df.index)]
+    
+    
+
+    def get_baseline_data(self, saving_directory = None, file_path = 'MLB-Seer'):
+        """
+       Parameters
+       ----------
+        pre_seizure : int
+                seconds to include before a seizure
+        post_seizure: int
+                seconds to include after a seizure
+
+       Returns
+       -------
+       dict<list<dataframe>>
+              Dictionary where each entry is one seizure from one patient with an associated list of dataframes (seizure segments)
+       
+        """
+        if saving_directory is None:
+            saving_directory = file_path
+        # get the updated patient class
+        pat = pickle.load(open(os.path.join(file_path, 'Patients-Info', self.id), 'rb'))
+
+        # get the baseline files
+        baseline_files = [file for file in os.listdir(os.path.join(file_path, self.id)) if (file not in pat.seizures.keys() and file.endswith('.edf') and 'Empatica' in file)]
+        
+        #get the modalities present in the baseline files
+        baseline_mod = set([base.split(' - ')[-1] for base in baseline_files])
+
+        # run each date to join all corresponding modalities in a single dataframe
+        for modality in baseline_mod:
+            #create a new dataframe for each modality
+            df = pd.DataFrame()
+            #get the dates associated with the modality
+            baseline_dates  = set([base.split(' - ')[1] for base in baseline_files if modality in base])
+            for date in sorted(baseline_dates):
+                name = [file for file in baseline_files if modality in file and date in file][0]
+                # open the corresponding edf file
+                edf = pyedf.EdfReader(os.path.join(file_path, self.id, name))
+
+                # concatenate the new dataframe with df
+                df = pd.concat((df, utils.edf_to_df(edf, modality)))
+
+            # dump the final dataframe into a pickle
+            pickle.dump(df, open(os.path.join(saving_directory, self.id, 'baseline_data_'+modality[:-4]),'wb'))
+
+
+
+
