@@ -30,8 +30,8 @@ class patient:
         seizures_csv : list<dict<string,timestamp>>
             List in which each element corresponds to a dict with "start_time" and "end_time" as keys and the corresponding
             timestamp as value
-        seizures : dict
-            Dict whose keys correspond to the file names that have at least a seizure segment and the values are 
+        seizures : list<dict>
+            List of dicts whose keys correspond to the file names that have at least a seizure segment and the values are 
             dicts with "sz_start" and "sz_end" as keys and the corresponding timestamp as value for the
               segment of the seizure event that are within that file 
         """

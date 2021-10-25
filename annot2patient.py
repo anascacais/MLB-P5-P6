@@ -62,5 +62,5 @@ for patient_id in list_patients:
 
         print(f'\n    seizures: {pat.seizures}')
 
-        # with open(os.path.join(saving_directory, pat.id), 'wb') as outp:
-        #     pickle.dump(pat, outp)
+        with open(os.path.join(saving_directory, pat.id), 'wb') as outp:
+            pickle.dump(pat, outp)
