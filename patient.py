@@ -141,16 +141,17 @@ class patient:
         # get the updated patient class
         pat = pickle.load(open(os.path.join(file_path, 'Patients-Info', self.id), 'rb'))
         final_dict = {}
-        # get the baseline files
-        for sz, seizure in enumerate(list(pat.seizures.keys())):
-            final_dict['Seizure_' + str(sz)] = {} 
+        # get the seizure files
+        for seizure in list(pat.seizures.keys()):
+            final_dict[seizure] = {} 
             seizure_files = pat.seizures[seizure]
+            # get each modality
             for name in seizure_files:
                 edf = pyedf.EdfReader(os.path.join(file_path, self.id, name))
                 modality = name.split(' - ')[-1][:-4]
 
                 df = utils.edf_to_df_seizure(edf, modality, seizure_files[name])
-                final_dict['Seizure_' + str(sz)][modality] = df
+                final_dict[seizure][modality] = df
 
         pickle.dump(final_dict, open(os.path.join(saving_directory, self.id, 'seizures_data'),'wb'))
 

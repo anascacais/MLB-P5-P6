@@ -40,8 +40,10 @@ for patient_id in list_patients:
         pat.seizures_csv = pat.get_seizures_csv()
         print(f'    number of seizure events: {len(pat.seizures_csv)}')
         dict_seizures = {}
+        i = 0
         for sz_event in pat.seizures_csv:
-            dict_seizures[sz_event['type']] = {}
+            dict_seizures['Seizure_' + str(i)] = {}
+            
 
             print(f'\n    --- Checking seizure {sz_event["start_time"]} ---')
 
@@ -59,7 +61,8 @@ for patient_id in list_patients:
                         file_path=os.path.join(pat.path, file), sz_event=sz_event, mod=mod)
 
                     if aux is not None:
-                        dict_seizures[sz_event['type']][file] =  aux
+                        dict_seizures['Seizure_' + str(i)][file] =  aux
+            i += 1
         pat.seizures = dict_seizures
 
         print(f'\n    seizures: {pat.seizures}')
