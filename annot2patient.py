@@ -4,21 +4,24 @@ import pickle
 
 # local
 from patient import patient
-import extract_patient_info as info
+import utils as utils
+
+# --------- CHANGE BEFORE RUNNING --------- #
 
 # the directory should be a folder containing folders with the patients' IDs,
 # each containing all the patient's files
-
-directory = 'MLB-Seer'
+directory = '/Users/anascacais/OneDrive - Universidade de Lisboa/BD-SEER'
 
 # choose directory where to save the patient class objects created below
-saving_directory = os.path.join(directory, 'Patients-Info')
+saving_directory = os.path.join('/Users/anascacais/Documents', 'Patients-Info')
+
+# ----------------------------------------- #
 
 if not os.path.exists(saving_directory):
     os.makedirs(saving_directory)
 
 list_patients = [patient_dir for patient_dir in os.listdir(directory) if (
-    os.path.isdir(os.path.join(directory, patient_dir)) and patient_dir != 'Patients-Info')]
+    os.path.isdir(os.path.join(directory, patient_dir)))]
 
 print(f'Patients to check: {list_patients}')
 
@@ -52,12 +55,12 @@ for patient_id in list_patients:
                 list_files = [file for file in os.listdir(pat.path) if (
                     file.endswith('.edf') and mod in file)]
 
-                sz_files = info.get_possible_files(
+                sz_files = utils.get_possible_files(
                     list_files=list_files, sz_event=sz_event)
 
                 for file in sz_files:
 
-                    aux = info.get_seizure_timestamps(
+                    aux = utils.get_seizure_timestamps(
                         file_path=os.path.join(pat.path, file), sz_event=sz_event, mod=mod)
 
                     if aux is not None:

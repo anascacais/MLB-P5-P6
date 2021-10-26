@@ -90,7 +90,7 @@ class patient:
     
     
 
-    def get_baseline_data(self, saving_directory = None, file_path = 'MLB-Seer'):
+    def get_baseline_data(self, pat, saving_directory = None, file_path = 'MLB-Seer'):
         """
        Parameters
        ----------
@@ -107,8 +107,6 @@ class patient:
         """
         if saving_directory is None:
             saving_directory = file_path
-        # get the updated patient class
-        pat = pickle.load(open(os.path.join(file_path, 'Patients-Info', self.id), 'rb'))
 
         # get the baseline files
         baseline_files = [file for file in os.listdir(os.path.join(file_path, self.id)) if (file not in pat.seizures.keys() and file.endswith('.edf') and 'Empatica' in file)]
@@ -131,15 +129,13 @@ class patient:
                 df = pd.concat((df, utils.edf_to_df(edf, modality)))
 
             # dump the final dataframe into a pickle
-            pickle.dump(df, open(os.path.join(saving_directory, self.id, 'baseline_data_'+modality[:-4]),'wb'))
+            pickle.dump(df, open(os.path.join(saving_directory, self.id + '_baseline_data_'+modality[:-4]),'wb'))
 
 
-    def get_seizures_data(self, saving_directory = None, file_path = 'MLB-Seer', preseizure=None, postseizure=None):
+    def get_seizures_data(self, pat, saving_directory = None, file_path = 'MLB-Seer', preseizure=None, postseizure=None):
 
         if saving_directory is None:
             saving_directory = file_path
-        # get the updated patient class
-        pat = pickle.load(open(os.path.join(file_path, 'Patients-Info', self.id), 'rb'))
         final_dict = {}
         # get the seizure files
         for seizure in list(pat.seizures.keys()):
@@ -150,10 +146,10 @@ class patient:
                 edf = pyedf.EdfReader(os.path.join(file_path, self.id, name))
                 modality = name.split(' - ')[-1][:-4]
 
-                df = utils.edf_to_df_seizure(edf, modality, seizure_files[name])
+                df = utils.edf_to_df_seizure(edf, modality, seizure_files[name], preseizure=preseizure, postseizure=postseizure)
                 final_dict[seizure][modality] = df
 
-        pickle.dump(final_dict, open(os.path.join(saving_directory, self.id, 'seizures_data'),'wb'))
+        pickle.dump(final_dict, open(os.path.join(saving_directory, self.id + '_seizures_data'),'wb'))
 
 
 
