@@ -17,16 +17,17 @@ import pickle
 
 # get_baseline_data
 
-patient_id = '01828'
+patient_id = 'MSEL_01550'
 file_path = 'MLB-Seer'
 
 pat = pickle.load(open(os.path.join(file_path, 'Patients-Info', patient_id), 'rb'))
 
-pat.get_baseline_data(saving_directory=None, file_path = file_path)
+#pat.get_seizures_data(saving_directory=None, file_path = file_path)
 
-eda = pickle.load(open(os.path.join(file_path, patient_id, 'baseline_data_Empatica-EDA'), 'rb'))
+seizures = pickle.load(open(os.path.join(file_path, patient_id, 'seizures_data'), 'rb'))
 
 import matplotlib.pyplot as plt
 
-plt.plot(eda)
+for seizure in seizures.keys():
+    plt.plot(seizures[seizure]['Empatica-ACC'])
 plt.show()

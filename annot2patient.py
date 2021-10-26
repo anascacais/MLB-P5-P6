@@ -9,7 +9,7 @@ import extract_patient_info as info
 # the directory should be a folder containing folders with the patients' IDs,
 # each containing all the patient's files
 
-directory = '/home/ana//Documents/MLB-Seer'
+directory = 'MLB-Seer'
 
 # choose directory where to save the patient class objects created below
 saving_directory = os.path.join(directory, 'Patients-Info')
@@ -39,8 +39,9 @@ for patient_id in list_patients:
 
         pat.seizures_csv = pat.get_seizures_csv()
         print(f'    number of seizure events: {len(pat.seizures_csv)}')
-
+        dict_seizures = {}
         for sz_event in pat.seizures_csv:
+            dict_seizures[sz_event['type']] = {}
 
             print(f'\n    --- Checking seizure {sz_event["start_time"]} ---')
 
@@ -58,7 +59,8 @@ for patient_id in list_patients:
                         file_path=os.path.join(pat.path, file), sz_event=sz_event, mod=mod)
 
                     if aux is not None:
-                        pat.seizures += [{file: aux}]
+                        dict_seizures[sz_event['type']][file] =  aux
+        pat.seizures = dict_seizures
 
         print(f'\n    seizures: {pat.seizures}')
 
