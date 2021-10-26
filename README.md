@@ -7,7 +7,7 @@ This repository was created to failitate the use of [Seer Medical Epilepsy datab
 
 ## How to get the DB information:
 
-- Download the Seer Medical DB with the following structure: a folder containing folders with the patients' IDs, each containing all the patient's files;
+- Download the Seer Medical DB with the following structure: a folder containing folders with the patients' IDs, each containing all the patient's files (e.g.: *MSEL_01808*);
 - In the script annot2patient.py, change the two directories to fit your needs and RUN the script;
 - A folder called "Patient-Info" will be created and populated with the DB info for each patient;
 - Each patient object hols the information of the corresponding patient from all the patient's files, including: directory with the original patient's files, available modalities and seizure information (i.e.: seizure type, files that contain those seizures and respective indexes).
