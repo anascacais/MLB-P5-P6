@@ -47,7 +47,6 @@ for patient_id in list_patients:
         for sz_event in pat.seizures_csv:
             dict_seizures['Seizure_' + str(i)] = {}
             
-
             print(f'\n    --- Checking seizure {sz_event["start_time"]} ---')
 
             for mod in pat.modalities:
@@ -60,7 +59,7 @@ for patient_id in list_patients:
 
                 for file in sz_files:
 
-                    aux = utils.get_seizure_timestamps(
+                    aux = pat.get_seizure_timestamps(
                         file_path=os.path.join(pat.path, file), sz_event=sz_event, mod=mod)
 
                     if aux is not None:

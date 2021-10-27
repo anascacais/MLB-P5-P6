@@ -3,6 +3,8 @@ import utils
 
 # built-in
 import os
+import math
+import datetime
 import pickle
 
 # third-party
@@ -30,8 +32,8 @@ class patient:
             ID of the patient
         files_path : string
             Directory where all the files of the corresponding patient are held
-        modalities : list
-            List with the modalities recorded for that patient
+        modalities : dict
+            Dict with the modalities recorded for that patient as keys and the sampling frequencies as values
         seizures_csv : list<dict<string,timestamp>>
             List in which each element corresponds to a dict with "start_time" and "end_time" as keys and the corresponding
             timestamp as value
@@ -65,7 +67,62 @@ class patient:
        # [-1] gets the last piece after the split by '-' ; [:-4] gets everything that comes before .edf
        list_files = [file.split('-')[-1][:-4] for file in os.listdir(self.path) if file.endswith('.edf')]
 
-       return list(set(list_files))
+       return {key: None for key in list(set(list_files))}
+
+
+    def get_seizure_timestamps(self, file_path, sz_event, mod):
+       """
+       Parameters
+       ----------
+       path : string
+              Path to the directory that holds the patient's files.
+       sz_event : map
+              Dict with "start_time" and "end_time" as keys and the corresponding timestamp as value
+
+       Returns
+       -------
+       dict, None
+              Dict with the "sz_start" and "sz_end" as keys and the corresponding timestamp as value for the
+              segment of the seizure event that are within that file 
+              If the file cannot be opened or no part of the seizure event fits within the timeframe of the
+              file, it returns None
+       
+       """
+
+       try:
+              edf = pyedf.EdfReader(file_path)
+       except:
+              print(f'        File {os.path.basename(file_path)} could not be opened')
+              return None
+
+       print(f'        channels: {edf.getSignalLabels()}')
+
+       signal = edf.readSignal(0)
+       fs = edf.getSampleFrequency(0)
+       duration = len(signal) / fs
+
+       self.modalities[mod] = fs
+
+       start_time = datetime.datetime.timestamp(edf.getStartdatetime())
+       end_time = start_time + duration
+
+       edf.close()
+
+       if (sz_event['start_time'] > end_time):
+              print(f'             seizure not recorded for {mod} modality')
+              return None
+
+       else:
+              # this covers all possibilities: (1) both the start and the end of the seizure are within the file 
+              # (2) only the start or (3) the end of the seizure is within the file
+              # (4) the start of the seizure is before the start of the file and the end is after the end of the file
+              aux_start = max(sz_event['start_time'], start_time)
+              aux_end = min(sz_event['end_time'], end_time)
+
+              start_ind = math.floor((aux_start - start_time) * fs)
+              end_ind = math.ceil((aux_end - start_time) * fs)
+              return {'sz_start': start_ind, 'sz_end': end_ind, 'type': sz_event['type']}
+
 
     def get_seizures_csv(self):
        """
@@ -148,21 +205,12 @@ class patient:
                 # concatenate the new dataframe with df
                 aux_df = pd.concat((aux_df, utils.edf_to_df(edf, modality)), axis=0) 
 
-            #df = pd.concat([df, aux_df], axis=1, join="outer")
-            df = df.join(aux_df, how='outer')
-            
-        
-        # drop rows that have at least 1 NaN (i.e. timestamps with at least one modality missing)
-        # prev_len = len(df)
-        # df.dropna(inplace=True)
-        # print(df)
-
-        # #print(f'\n    lost {((prev_len - len(df)) / prev_len) * 100}% of {(prev_len / edf.getSampleFrequency(0)) / 60} min of signal')
-        # print(f'\n  --- patient {self.id} ---')
-        # print('   lost {:.2f}% of {:.0f} min of signal'.format(((prev_len - len(df)) / prev_len) * 100, (prev_len / edf.getSampleFrequency(0)) / 60))
+            #df = df.join(aux_df, how='outer')
+            #pickle.dump(df, open(os.path.join(saving_dir, f'baseline_data_{modality[:-4]}'),'wb'))
+            aux_df.to_pickle(os.path.join(saving_dir, f'baseline_data_{modality[:-4]}'))
 
         # dump the final dataframe into a pickle
-        pickle.dump(df, open(os.path.join(saving_dir, f'baseline_data_NaN'),'wb'))
+        #pickle.dump(df, open(os.path.join(saving_dir, f'baseline_data_NaN'),'wb'))
 
 
     def get_seizures_data(self, saving_directory = None, file_path = 'MLB-Seer', preseizure=None, postseizure=None):
@@ -185,6 +233,28 @@ class patient:
 
         pickle.dump(final_dict, open(os.path.join(saving_directory, self.id + '_seizures_data'),'wb'))
 
+
+
+    def get_joint_modalities(self, target_modalities, saving_dir):
+
+        df = pd.DataFrame()
+
+        for modality in target_modalities:
+            
+            print(f'    joining modality {modality}')
+            aux_df = pd.read_pickle(os.path.join(saving_dir, f'baseline_data_{modality}'))
+            df = df.join(aux_df, how='outer')
+
+        # drop rows that have at least 1 NaN (i.e. timestamps with at least one modality missing)
+        prev_len = len(df)
+        df.dropna(inplace=True)
+        print(df)
+        print('   lost {:.2f}% of {:.0f} min of signal'.format(((prev_len - len(df)) / prev_len) * 100, (prev_len / self.modalities[modality.split('-')[1]]) / 60))
+
+        # dump the final dataframe into a pickle
+        df.to_pickle(os.path.join(saving_dir, f'baseline_{"_".join(target_modalities)}'))
+
+        
 
     def get_seizure_files(self):
 

@@ -38,63 +38,6 @@ def get_possible_files(list_files, sz_event):
        
        # this gets the file immediately before the seizure start and the one that includes the seizure end (which could be the same)
        return [files_starts[t] for t in aux_list[idx_aux[0]-1 : idx_aux[1]-1] if t != sz_event['start_time']]
-    
-
-
-def get_seizure_timestamps(file_path, sz_event, mod):
-       """
-       Parameters
-       ----------
-       path : string
-              Path to the directory that holds the patient's files.
-       sz_event : map
-              Dict with "start_time" and "end_time" as keys and the corresponding timestamp as value
-
-       Returns
-       -------
-       dict, None
-              Dict with the "sz_start" and "sz_end" as keys and the corresponding timestamp as value for the
-              segment of the seizure event that are within that file 
-              If the file cannot be opened or no part of the seizure event fits within the timeframe of the
-              file, it returns None
-       
-       """
-
-       try:
-              edf = pyedf.EdfReader(file_path)
-       except:
-              print(f'        File {os.path.basename(file_path)} could not be opened')
-              return None
-
-       print(f'        channels: {edf.getSignalLabels()}')
-
-       signal = edf.readSignal(0)
-       fs = edf.getSampleFrequency(0)
-       duration = len(signal) / fs
-
-       start_time = datetime.datetime.timestamp(edf.getStartdatetime())
-       end_time = start_time + duration
-
-       
-       #print(f'{edf.getFileDuration()} vs {len(signal) / edf.getSampleFrequency(0)}')
-
-       edf.close()
-
-       if (sz_event['start_time'] > end_time):
-              print(f'             seizure not recorded for {mod} modality')
-              return None
-
-       else:
-              # this covers all possibilities: (1) both the start and the end of the seizure are within the file 
-              # (2) only the start or (3) the end of the seizure is within the file
-              # (4) the start of the seizure is before the start of the file and the end is after the end of the file
-              aux_start = max(sz_event['start_time'], start_time)
-              aux_end = min(sz_event['end_time'], end_time)
-
-              start_ind = math.floor((aux_start - start_time) * fs)
-              end_ind = math.ceil((aux_end - start_time) * fs)
-              return {'sz_start': start_ind, 'sz_end': end_ind, 'type': sz_event['type']}
-
 
 
 def edf_to_df(edf, col_name):
