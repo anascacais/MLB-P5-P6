@@ -2,36 +2,29 @@
 import os
 import pickle
 
-# get_baseline_data
 
-patient_id = 'MSEL_01763'
-file_path = '/Users/anascacais/Documents/MLB-Seer'
-file_info = '/Users/anascacais/Documents/Patients-Info'
-saving_directory = '/Users/anascacais/Documents/Data'
+db_dir = '/Users/anascacais/OneDrive - Universidade de Lisboa/BD-SEER'
+patients_info_dir = '/Users/anascacais/Documents/Patients-Info'
+saving_dir = '/Users/anascacais/Documents/Data'
 
-pat = pickle.load(open(os.path.join(file_info, patient_id), 'rb'))
+list_patients = [patient_id for patient_id in os.listdir(patients_info_dir)]
 
-if not os.path.isdir(os.path.join(saving_directory, pat.id)):
-    os.mkdir(os.path.join(saving_directory, pat.id))
+lost_data = {}
 
-# TEST SEIZURES
-if pat.id + '_seizures_data' not in os.listdir(os.path.join(saving_directory)):
-    pat.get_seizures_data(pat, saving_directory=saving_directory, file_path = file_path)
+for patient_id in list_patients:    
+    
+    # if patient_id != 'MSEL_01828':
+    #     continue
 
-seizures = pickle.load(open(os.path.join(saving_directory, patient_id + '_seizures_data'), 'rb'))
+    pat = pickle.load(open(os.path.join(patients_info_dir, patient_id), 'rb'))
+    print(f'\n--- Checking patient {pat.id} ---')
 
-import matplotlib.pyplot as plt
+    if not os.path.isdir(os.path.join(saving_dir, pat.id)):
+        os.makedirs(os.path.join(saving_dir, pat.id))
+        
+    if os.path.exists(os.path.join(saving_dir, pat.id, 'baseline_data_NaN')):   
+        print('    patient already has baseline with NaN')
+    
+    else:
+        pat.get_baseline_data(os.path.join(saving_dir, pat.id))
 
-for seizure in seizures.keys():
-    plt.plot(seizures[seizure]['Empatica-EDA'])
-
-# TEST BASELINE
-
-if len([file for file in os.listdir(os.path.join(saving_directory)) if 'baseline in file']) > 0:
-    pat.get_baseline_data(pat, saving_directory, file_path)
-
-baseline = pickle.load(open(os.path.join(saving_directory, patient_id + '_baseline_data_Empatica-EDA'), 'rb'))
-
-plt.figure()
-plt.plot(baseline)
-plt.show()

@@ -90,7 +90,7 @@ class patient:
     
     
 
-    def get_baseline_data(self, pat, saving_directory = None, file_path = 'MLB-Seer'):
+    def get_baseline_data(self, saving_dir, target_mod = None):
         """
        Parameters
        ----------
@@ -105,42 +105,76 @@ class patient:
               Dictionary where each entry is one seizure from one patient with an associated list of dataframes (seizure segments)
        
         """
-        if saving_directory is None:
-            saving_directory = file_path
+
+        df = pd.DataFrame()
 
         # get the baseline files
-        baseline_files = [file for file in os.listdir(os.path.join(file_path, self.id)) if (file not in pat.seizures.keys() and file.endswith('.edf') and 'Empatica' in file)]
+        baseline_files = [file for file in os.listdir(self.path) if (file not in self.get_seizure_files() and file.endswith('.edf') and 'Empatica' in file)]
         
+        # baseline_files = ['MSEL_01828 - 19.01.22 06.54.33 - Empatica-BVP.edf', 
+        # 'MSEL_01828 - 19.01.22 06.54.33 - Empatica-EDA.edf', 
+        # 'MSEL_01828 - 19.01.22 06.54.33 - Empatica-TEMP.edf',
+        # 'MSEL_01828 - 19.01.22 07.54.27 - Empatica-BVP.edf',
+        # 'MSEL_01828 - 19.01.22 07.54.27 - Empatica-EDA.edf',
+        # 'MSEL_01828 - 19.01.22 07.54.27 - Empatica-TEMP.edf',
+        # 'MSEL_01828 - 19.01.22 07.50.02 - Empatica-TEMP.edf',
+        # 'MSEL_01828 - 19.01.22 07.50.05 - Empatica-TEMP.edf',
+        # 'MSEL_01828 - 19.01.22 07.50.08 - Empatica-TEMP.edf',
+        # 'MSEL_01828 - 19.01.22 07.50.10 - Empatica-TEMP.edf',
+        # 'MSEL_01828 - 19.01.22 07.53.52 - Empatica-TEMP.edf']
+
         #get the modalities present in the baseline files
-        baseline_mod = set([base.split(' - ')[-1] for base in baseline_files])
+        if target_mod == None:
+            target_mod = set([base.split(' - ')[-1] for base in baseline_files])
 
         # run each date to join all corresponding modalities in a single dataframe
-        for modality in baseline_mod:
+        for modality in target_mod:
+
+            print(f'    --- Checking modality {modality[:-4]} ---')
+
             #create a new dataframe for each modality
-            df = pd.DataFrame()
+            aux_df = pd.DataFrame()
             #get the dates associated with the modality
+
             baseline_dates  = set([base.split(' - ')[1] for base in baseline_files if modality in base])
+
             for date in sorted(baseline_dates):
-                name = [file for file in baseline_files if modality in file and date in file][0]
-                # open the corresponding edf file
-                edf = pyedf.EdfReader(os.path.join(file_path, self.id, name))
+
+                name = f'{self.id} - {date} - {modality}'
+                print(f'        file {name}')
+
+                edf = pyedf.EdfReader(os.path.join(self.path, name))
 
                 # concatenate the new dataframe with df
-                df = pd.concat((df, utils.edf_to_df(edf, modality)))
+                aux_df = pd.concat((aux_df, utils.edf_to_df(edf, modality)), axis=0) 
 
-            # dump the final dataframe into a pickle
-            pickle.dump(df, open(os.path.join(saving_directory, self.id + '_baseline_data_'+modality[:-4]),'wb'))
+            #df = pd.concat([df, aux_df], axis=1, join="outer")
+            df = df.join(aux_df, how='outer')
+            
+        
+        # drop rows that have at least 1 NaN (i.e. timestamps with at least one modality missing)
+        # prev_len = len(df)
+        # df.dropna(inplace=True)
+        # print(df)
+
+        # #print(f'\n    lost {((prev_len - len(df)) / prev_len) * 100}% of {(prev_len / edf.getSampleFrequency(0)) / 60} min of signal')
+        # print(f'\n  --- patient {self.id} ---')
+        # print('   lost {:.2f}% of {:.0f} min of signal'.format(((prev_len - len(df)) / prev_len) * 100, (prev_len / edf.getSampleFrequency(0)) / 60))
+
+        # dump the final dataframe into a pickle
+        pickle.dump(df, open(os.path.join(saving_dir, f'baseline_data_NaN'),'wb'))
 
 
-    def get_seizures_data(self, pat, saving_directory = None, file_path = 'MLB-Seer', preseizure=None, postseizure=None):
+    def get_seizures_data(self, saving_directory = None, file_path = 'MLB-Seer', preseizure=None, postseizure=None):
 
         if saving_directory is None:
             saving_directory = file_path
+
         final_dict = {}
         # get the seizure files
-        for seizure in list(pat.seizures.keys()):
+        for seizure in list(self.seizures.keys()):
             final_dict[seizure] = {} 
-            seizure_files = pat.seizures[seizure]
+            seizure_files = self.seizures[seizure]
             # get each modality
             for name in seizure_files:
                 edf = pyedf.EdfReader(os.path.join(file_path, self.id, name))
@@ -152,7 +186,15 @@ class patient:
         pickle.dump(final_dict, open(os.path.join(saving_directory, self.id + '_seizures_data'),'wb'))
 
 
+    def get_seizure_files(self):
 
+        seizure_files = []
+
+        for sz in list(self.seizures.keys()):
+
+            seizure_files += list(self.seizures[sz].keys()) 
+
+        return seizure_files
 
 
 

@@ -6,6 +6,7 @@ import datetime
 # third-party
 import pandas as pd
 import pyedflib as pyedf
+import numpy as np
 
 
 def get_possible_files(list_files, sz_event):
@@ -115,21 +116,25 @@ def edf_to_df(edf, col_name):
     
     for n in range(edf.signals_in_file):
 
-        
         signal = edf.readSignal(n)
+
         if 'HR' in col_name:
             start_time = edf.getStartdatetime() - datetime.timedelta(seconds = 10)
+        
         else:
             start_time = edf.getStartdatetime()
+        
         base_index = pd.date_range(start_time, start_time + datetime.timedelta(seconds=len(signal)/edf.getSampleFrequency(0)), periods=len(signal))
+        
         if n == 0:
             baseline_df = pd.DataFrame(signal, columns=[col_name], index = base_index)
             continue
+        
         baseline_df[col_name + '_' + str(n)] = signal
 
     return baseline_df
 
-    
+
 
 def edf_to_df_seizure(edf, col_name, sz_dict, preseizure=0, postseizure=0):
     """
