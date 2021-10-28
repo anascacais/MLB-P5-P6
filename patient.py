@@ -5,10 +5,10 @@ import utils
 import os
 import math
 import datetime
-import pickle
 
 # third-party
 import pandas as pd
+import numpy as np
 import pyedflib as pyedf
 
 class patient:
@@ -116,11 +116,11 @@ class patient:
               # this covers all possibilities: (1) both the start and the end of the seizure are within the file 
               # (2) only the start or (3) the end of the seizure is within the file
               # (4) the start of the seizure is before the start of the file and the end is after the end of the file
-              aux_start = max(sz_event['start_time'], start_time)
-              aux_end = min(sz_event['end_time'], end_time)
+              aux_start = math.floor((sz_event['start_time'] - start_time) * fs)
+              aux_end = math.ceil((sz_event['end_time'] - start_time) * fs)
 
-              start_ind = math.floor((aux_start - start_time) * fs)
-              end_ind = math.ceil((aux_end - start_time) * fs)
+              start_ind = max(aux_start, 0)
+              end_ind = min(aux_end, len(signal)-1)
               return {'sz_start': start_ind, 'sz_end': end_ind, 'type': sz_event['type']}
 
 
@@ -163,86 +163,102 @@ class patient:
        
         """
 
-        df = pd.DataFrame()
-
         # get the baseline files
         baseline_files = [file for file in os.listdir(self.path) if (file not in self.get_seizure_files() and file.endswith('.edf') and 'Empatica' in file)]
-        
-        # baseline_files = ['MSEL_01828 - 19.01.22 06.54.33 - Empatica-BVP.edf', 
-        # 'MSEL_01828 - 19.01.22 06.54.33 - Empatica-EDA.edf', 
-        # 'MSEL_01828 - 19.01.22 06.54.33 - Empatica-TEMP.edf',
-        # 'MSEL_01828 - 19.01.22 07.54.27 - Empatica-BVP.edf',
-        # 'MSEL_01828 - 19.01.22 07.54.27 - Empatica-EDA.edf',
-        # 'MSEL_01828 - 19.01.22 07.54.27 - Empatica-TEMP.edf',
-        # 'MSEL_01828 - 19.01.22 07.50.02 - Empatica-TEMP.edf',
-        # 'MSEL_01828 - 19.01.22 07.50.05 - Empatica-TEMP.edf',
-        # 'MSEL_01828 - 19.01.22 07.50.08 - Empatica-TEMP.edf',
-        # 'MSEL_01828 - 19.01.22 07.50.10 - Empatica-TEMP.edf',
-        # 'MSEL_01828 - 19.01.22 07.53.52 - Empatica-TEMP.edf']
 
         #get the modalities present in the baseline files
-        if target_mod == None:
-            target_mod = set([base.split(' - ')[-1] for base in baseline_files])
+        target_mod = set([base.split(' - ')[-1][:-4] for base in baseline_files])
+
+        if all([os.path.exists(os.path.join(saving_dir, f'baseline_data_{modality}')) for modality in target_mod]):
+            print('    patient already has baseline data')
+            return None
 
         # run each date to join all corresponding modalities in a single dataframe
         for modality in target_mod:
 
-            print(f'    --- Checking modality {modality[:-4]} ---')
+            if os.path.exists(os.path.join(saving_dir, f'baseline_data_{modality}')):
+                print(f'        patient already has modality {modality}')
+                continue
 
-            #create a new dataframe for each modality
-            aux_df = pd.DataFrame()
-            #get the dates associated with the modality
+            print(f'    --- Checking modality {modality} ---')
 
+            #create a new dataframe for modality
+            df = pd.DataFrame()
+
+            # get the dates associated with the modality
             baseline_dates  = set([base.split(' - ')[1] for base in baseline_files if modality in base])
 
             for date in sorted(baseline_dates):
 
-                name = f'{self.id} - {date} - {modality}'
+                name = f'{self.id} - {date} - {modality}.edf'
                 print(f'        file {name}')
 
                 edf = pyedf.EdfReader(os.path.join(self.path, name))
 
                 # concatenate the new dataframe with df
-                aux_df = pd.concat((aux_df, utils.edf_to_df(edf, modality)), axis=0) 
+                df = pd.concat((df, utils.edf_to_df(edf, modality)), axis=0) 
 
-            #df = df.join(aux_df, how='outer')
-            #pickle.dump(df, open(os.path.join(saving_dir, f'baseline_data_{modality[:-4]}'),'wb'))
-            aux_df.to_pickle(os.path.join(saving_dir, f'baseline_data_{modality[:-4]}'))
-
-        # dump the final dataframe into a pickle
-        #pickle.dump(df, open(os.path.join(saving_dir, f'baseline_data_NaN'),'wb'))
-
-
-    def get_seizures_data(self, saving_directory = None, file_path = 'MLB-Seer', preseizure=None, postseizure=None):
-
-        if saving_directory is None:
-            saving_directory = file_path
-
-        final_dict = {}
-        # get the seizure files
-        for seizure in list(self.seizures.keys()):
-            final_dict[seizure] = {} 
-            seizure_files = self.seizures[seizure]
-            # get each modality
-            for name in seizure_files:
-                edf = pyedf.EdfReader(os.path.join(file_path, self.id, name))
-                modality = name.split(' - ')[-1][:-4]
-
-                df = utils.edf_to_df_seizure(edf, modality, seizure_files[name], preseizure=preseizure, postseizure=postseizure)
-                final_dict[seizure][modality] = df
-
-        pickle.dump(final_dict, open(os.path.join(saving_directory, self.id + '_seizures_data'),'wb'))
+            df.to_pickle(os.path.join(saving_dir, f'baseline_data_{modality}'))
 
 
 
-    def get_joint_modalities(self, target_modalities, saving_dir):
+    def get_seizures_data(self, saving_dir):
+
+        seizure_files = [file for file in self.get_seizure_files() if 'Empatica' in file]
+        target_mod = set([base.split(' - ')[-1][:-4] for base in seizure_files])
+
+        if all([os.path.exists(os.path.join(saving_dir, f'baseline_data_{modality}.edf')) for modality in target_mod]):
+            print('    patient already has seizures data')
+            return None
+
+        for modality in target_mod:
+
+            if os.path.exists(os.path.join(saving_dir, f'seizures_data_{modality}')):
+                print(f'        patient already has modality {modality}')
+                continue
+
+            print(f'    --- Checking modality {modality} ---')
+
+            #create a new dataframe for each modality
+            df = pd.DataFrame()
+
+            #get the dates associated with the modality
+            seizure_dates  = set([base.split(' - ')[1] for base in seizure_files if modality in base])
+
+            for date in sorted(seizure_dates):
+
+                name = f'{self.id} - {date} - {modality}.edf'
+                print(f'        file {name}')
+
+                edf = pyedf.EdfReader(os.path.join(self.path, name))
+
+                # check which seizure this file has
+                sz = list(self.seizures.keys())[[name in files for files in [list(d.keys()) for d in  self.seizures.values()]].index(True)]
+                
+                # turn to dataframe and add seizure column
+                aux_df = utils.edf_to_df(edf, modality)
+
+                aux_sz = np.zeros((len(aux_df),))
+                aux_sz[self.seizures[sz][name]['sz_start'] : self.seizures[sz][name]['sz_end']+1] = int(sz.split('_')[-1]) * np.ones((self.seizures[sz][name]['sz_end']+1 - self.seizures[sz][name]['sz_start'],))
+
+                aux_df = pd.concat((aux_df, pd.DataFrame(aux_sz, columns=['sz'], index=aux_df.index)), axis=1)    
+
+                # concatenate the new dataframe with df
+                df = pd.concat((df, aux_df), axis=0) 
+
+            df.to_pickle(os.path.join(saving_dir, f'seizures_data_{modality}'))
+            
+
+
+
+    def get_joint_modalities(self, target_modalities, modalities_dir, saving_dir):
 
         df = pd.DataFrame()
 
         for modality in target_modalities:
             
             print(f'    joining modality {modality}')
-            aux_df = pd.read_pickle(os.path.join(saving_dir, f'baseline_data_{modality}'))
+            aux_df = pd.read_pickle(os.path.join(modalities_dir, self.id, f'baseline_data_{modality}'))
             df = df.join(aux_df, how='outer')
 
         # drop rows that have at least 1 NaN (i.e. timestamps with at least one modality missing)
@@ -252,9 +268,11 @@ class patient:
         print('   lost {:.2f}% of {:.0f} min of signal'.format(((prev_len - len(df)) / prev_len) * 100, (prev_len / self.modalities[modality.split('-')[1]]) / 60))
 
         # dump the final dataframe into a pickle
-        df.to_pickle(os.path.join(saving_dir, f'baseline_{"_".join(target_modalities)}'))
+        df.to_pickle(os.path.join(saving_dir, f'{self.id}_baseline'))
 
-        
+    
+    #def get_joint_modalities_sz(self, target_modalities, modalities_dir, saving_dir):
+
 
     def get_seizure_files(self):
 

@@ -45,7 +45,7 @@ for patient_id in list_patients:
         dict_seizures = {}
         i = 0
         for sz_event in pat.seizures_csv:
-            dict_seizures['Seizure_' + str(i)] = {}
+            dict_seizures['Seizure_' + str(i+1)] = {}
             
             print(f'\n    --- Checking seizure {sz_event["start_time"]} ---')
 
