@@ -5,18 +5,20 @@ This repository was created to failitate the use of [Seer Medical Epilepsy datab
 - Describing the database
 - Turning the information into machine-learning-readable format
 
-## How to get the DB information:
+## 1. How to get the DB information:
 
 - Download the Seer Medical DB with the following structure: a folder containing folders with the patients' IDs, each containing all the patient's files (e.g.: *MSEL_01808*);
 - In the script *annot2patient.py*, change the two directories to fit your needs and RUN the script;
-- A folder called "Patient-Info" will be created and populated with the DB info for each patient;
-- Each patient object hols the information of the corresponding patient from all the patient's files, including: directory with the original patient's files, available modalities and seizure information (i.e.: seizure type, files that contain those seizures and respective indexes).
+- A folder called "patient-info" will be created and populated with the DB info for each patient;
+- Each patient object holds the information of the corresponding patient from all the patient's files, including: directory with the original patient's files, available modalities and seizure information (i.e.: seizure type, files that contain those seizures and respective indexes).
 
 Note: the script *check_patient_info* can be run after annot2patient and checks if the number of seizures in the DB annotations corresponds to the number of seizures in the patient object created.
 
-## How to get the patients' data into something workable:
+## 2. How to get the patients' data into something workable:
 
-- This is still a work in progress
+- In the script *get_baseline_seizure_data.py*, change the three directories and RUN the script;
+- A folder called "raw-data-df" will be created and populated with a folder for each patient which, in turn, will hold the baseline and seizure dataframes for that patient;
+- These dataframes correspond to the concatenated baseline/seizure files for each modality, individually. However, seizure dataframes have an additional column that labels each timestamp with a 0 (if it does not correspond to an annotated seizure) or with a number i (corresponding to the i-th annotated seizure for that patient)(check the notebook in *example* to take a look at these structures).
 - ✨Magic ✨
 
 ## License
