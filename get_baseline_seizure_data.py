@@ -11,6 +11,7 @@ saving_dir = '/Users/anascacais/Documents/DF-Raw-Data'
 # ----------------------------------------- #
 
 list_patients = [patient_id for patient_id in os.listdir(patients_info_dir)]
+print(list_patients)
 
 for patient_id in list_patients:    
 
@@ -22,3 +23,7 @@ for patient_id in list_patients:
 
     pat.get_baseline_data(os.path.join(saving_dir, pat.id))
     pat.get_seizures_data(os.path.join(saving_dir, pat.id))
+
+    # remove patient folder if empty
+    if os.listdir(os.path.join(saving_dir, pat.id)) == []:
+        os.rmdir(os.path.join(saving_dir, pat.id))

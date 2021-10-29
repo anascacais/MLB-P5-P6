@@ -166,6 +166,10 @@ class patient:
         # get the baseline files
         baseline_files = [file for file in os.listdir(self.path) if (file not in self.get_seizure_files() and file.endswith('.edf') and 'Empatica' in file)]
 
+        if baseline_files == []:
+            print('    patient has no baseline Empatica files')
+            return None
+
         #get the modalities present in the baseline files
         target_mod = set([base.split(' - ')[-1][:-4] for base in baseline_files])
 
@@ -205,6 +209,11 @@ class patient:
     def get_seizures_data(self, saving_dir):
 
         seizure_files = [file for file in self.get_seizure_files() if 'Empatica' in file]
+        
+        if seizure_files == []:
+            print('    patient has no seizures recorded in Empatica files')
+            return None
+
         target_mod = set([base.split(' - ')[-1][:-4] for base in seizure_files])
 
         if all([os.path.exists(os.path.join(saving_dir, f'baseline_data_{modality}.edf')) for modality in target_mod]):
