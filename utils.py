@@ -82,7 +82,7 @@ def filter_modality(crop_signal, label, fs=128):
     fs = float(fs)
 
     if 'eda' in label.lower():
-        aux, _, _ = bp.signals.utils.filter_signal(
+        aux, _, _ = bp.signals.tools.filter_signal(
         signal=signal,
         ftype="butter",
         band="lowpass",
@@ -91,10 +91,10 @@ def filter_modality(crop_signal, label, fs=128):
         sampling_rate=fs,)
         # smooth
         sm_size = int(0.75 * fs)
-        filtered, _ = bp.signals.utils.smoother(signal=aux, kernel="boxzen", size=sm_size, mirror=True)
+        filtered, _ = bp.signals.tools.smoother(signal=aux, kernel="boxzen", size=sm_size, mirror=True)
 
     elif 'bvp' in label.lower():
-        filtered, _, _ = bp.signals.utils.filter_signal(signal=signal,
+        filtered, _, _ = bp.signals.tools.filter_signal(signal=signal,
                                       ftype='butter',
                                       band='bandpass',
                                       order=4,
@@ -102,6 +102,12 @@ def filter_modality(crop_signal, label, fs=128):
                                       sampling_rate=fs)
         
     elif 'temp' in label.lower():
-        signal = crop_signal
+        sm_size = int(0.75 * fs)
+        filtered, _ = bp.signals.tools.smoother(signal=signal, kernel="boxzen", size=sm_size, mirror=True)
+
+    elif 'acc' in label.lower():
+        sm_size = int(0.75 * fs)
+        filtered, _ = bp.signals.tools.smoother(signal=signal, kernel="boxzen", size=sm_size, mirror=True)
 
     return filtered
+
