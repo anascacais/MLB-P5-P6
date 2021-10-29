@@ -1,6 +1,8 @@
 
 import datetime
 
+import biosppy as bp
+from biosppy import signals
 import numpy as np
 import pandas as pd
 
@@ -30,7 +32,7 @@ def edf_to_df(edf, col_name):
             start_time = edf.getStartdatetime() - datetime.timedelta(seconds = 10)
         else:
             start_time = edf.getStartdatetime()
-        base_index = pd.date_range(start_time, start_time + datetime.timedelta(seconds=len(signal)/edf.getSampleFrequency(0)), periods=len(signal))
+        base_index = pd.date_range(start_time, start_time + datetime.timedelta(seconds=len(signal)/edf.getSampleFrequency(0)), freq='128H')
         if n == 0:
             baseline_df = pd.DataFrame(signal, columns=[col_name], index = base_index)
             continue
@@ -71,3 +73,35 @@ def edf_to_df_seizure(edf, col_name, sz_dict, preseizure=0, postseizure=0):
         seizure_df[col_name + '_' + str(n)] = signal[sz_dict['sz_start']-pre_ : post_ + sz_dict['sz_end']]
 
     return seizure_df
+
+
+def filter_modality(crop_signal, label, fs=128):
+
+    # ensure numpy
+    signal = np.array(crop_signal)
+    fs = float(fs)
+
+    if 'eda' in label.lower():
+        aux, _, _ = bp.signals.utils.filter_signal(
+        signal=signal,
+        ftype="butter",
+        band="lowpass",
+        order=4,
+        frequency=5,
+        sampling_rate=fs,)
+        # smooth
+        sm_size = int(0.75 * fs)
+        filtered, _ = bp.signals.utils.smoother(signal=aux, kernel="boxzen", size=sm_size, mirror=True)
+
+    elif 'bvp' in label.lower():
+        filtered, _, _ = bp.signals.utils.filter_signal(signal=signal,
+                                      ftype='butter',
+                                      band='bandpass',
+                                      order=4,
+                                      frequency=[1, 8],
+                                      sampling_rate=fs)
+        
+    elif 'temp' in label.lower():
+        signal = crop_signal
+
+    return filtered
