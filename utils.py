@@ -1,12 +1,8 @@
 # built-in
-import os
-import math
 import datetime
 
 # third-party
 import pandas as pd
-import pyedflib as pyedf
-import numpy as np
 
 
 def get_possible_files(list_files, sz_event):
@@ -78,40 +74,12 @@ def edf_to_df(edf, col_name):
     return baseline_df
 
 
+def get_seizure_files(self):
 
-def edf_to_df_seizure(edf, col_name, sz_dict, preseizure=0, postseizure=0):
-    """
-    Parameters
-    ----------
-        edf : edf file
-                edf to process
-        sz_dict: dict
-                contains file name, sz start and sz end 
+    seizure_files = []
 
-    Returns
-    -------
-    dataframe
-            Dataframe with timestamps as index and the modality as column name
-            If there is more than one column, they will be stacked with the suffix "_1", "_2", as it happens for the ACC
-    
-    """
+    for sz in list(self.seizures.keys()):
 
-    start_time = edf.getStartdatetime()
-    sz_start_time = start_time + datetime.timedelta(seconds = (-preseizure + sz_dict['sz_start']/edf.getSampleFrequency(0)))
-    sz_end_time = start_time + datetime.timedelta(seconds = (postseizure + sz_dict['sz_end']/edf.getSampleFrequency(0)))
-    
-    pre_ = int(preseizure * edf.getSampleFrequency(0))
-    post_ = int(postseizure * edf.getSampleFrequency(0))
-    label_ = np.hstack([np.zeros(pre_), np.ones(sz_dict['sz_end'] - sz_dict['sz_start']), np.zeros(post_)])
+        seizure_files += list(self.seizures[sz].keys()) 
 
-    time_index = pd.date_range(start=sz_start_time, end= sz_end_time, periods = len(label_))
-    seizure_df = pd.DataFrame(label_, columns=['SZ'], index=time_index)
-
-    for n in range(edf.signals_in_file):        
-        signal = edf.readSignal(n)
-        sig_crop = signal[sz_dict['sz_start']-pre_ : sz_dict['sz_start']-pre_ + len(time_index)]
-        if len(sig_crop) < len(time_index):
-            seizure_df = seizure_df[:len(sig_crop)]
-        seizure_df[col_name + '_' + str(n)] = sig_crop
-
-    return seizure_df
+    return seizure_files
