@@ -42,7 +42,7 @@ def get_filtered_data(diff_time, file):
     return filtered_df
 
 
-def filter_baseline_data(saving_directory, start_directory, patient_id, modalities):
+def filter_data(saving_directory, start_directory, patient_id, modalities):
 
     # confirm is patient is in the new directory and create new directory if not
     if not os.path.isdir(os.path.join(saving_directory, patient_id)):
@@ -57,19 +57,26 @@ def filter_baseline_data(saving_directory, start_directory, patient_id, modaliti
             continue
         
         # get the file name of the modality, within the start directory
-        file_name = [file for file in os.listdir(os.path.join(start_directory, patient_id)) if modality in file][0]
-        
-        # open the file as a dataframe
-        file = pd.read_pickle(os.path.join(start_directory, patient_id, file_name))
+        file_names = [file for file in os.listdir(os.path.join(start_directory, patient_id)) if modality in file]
 
-        # confirm if there are jumps in the timestamps 
-        diff_time_aux = np.diff(file.index).astype('timedelta64[ms]')
-        diff_time = np.argwhere(diff_time_aux != datetime.timedelta(milliseconds=7))
+        for file_name in file_names:
+            
+            # open the file as a dataframe
+            file = pd.read_pickle(os.path.join(start_directory, patient_id, file_name))
 
-        
-        # create new dataframe
-        filtered_df = get_filtered_data(diff_time, file)
-        pickle.dump(filtered_df, open(os.path.join(saving_directory, patient_id, 'filtered_b_data_' + modality), 'wb'))
-        
+            # confirm if there are jumps in the timestamps 
+            diff_time_aux = np.diff(file.index).astype('timedelta64[ms]')
+            diff_time = np.argwhere(diff_time_aux != datetime.timedelta(milliseconds=7))
 
-filter_baseline_data(saving_directory, start_directory, '01828', modalities)
+            
+            # create new dataframe
+            filtered_df = get_filtered_data(diff_time, file)
+            if 'baseline' in file_name:
+                letter = 'b'
+            elif 'seizure' in file_name:
+                letter = 's'
+                filtered_df['SZ'] = file['SZ']
+            pickle.dump(filtered_df, open(os.path.join(saving_directory, patient_id, 'filtered_'+ letter +'_data_' + modality), 'wb'))
+            
+
+filter_data(saving_directory, start_directory, '01828', modalities)
