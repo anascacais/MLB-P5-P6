@@ -1,14 +1,9 @@
 # built-in
-import json
 import os
 
 # third-party
 import numpy as np
-
-# local
-from biosppy import utils
-from biosppy import tools as st
-
+from scipy.stats import skew, kurtosis
 
 def signal_stats(signal=None, hist=True):
     """Compute statistical metrics describing the signal.
@@ -57,121 +52,16 @@ def signal_stats(signal=None, hist=True):
 
     # ensure numpy
     signal = np.array(signal)
-    dict = json.load(open(os.path.join(os.path.abspath('.'), 'features', 'statistic_features_log.json')))
-    args, names = [], []
+    mean = np.mean(signal)
+    median = np.median(signal)
+    var = np.var(signal)
+    std = np.std(signal)
+    abs_dev = np.sum(np.abs(signal - median))
+    kurtosis_ = kurtosis(signal)
+    skewness = skew(signal)
+    iqr = np.percentile(signal, 75) - np.percentile(signal, 25)
+    rms = np.sqrt(np.sum(np.array(signal) ** 2) / len(signal))
 
-    # mean
-    try:
-        mean = np.mean(signal)
-    except:
-        mean = None
 
-    if dict['mean']['use'] == 'yes':
-        args += [mean]
-        names += ['mean']
+    return np.hstack((mean, median, var, std, abs_dev, kurtosis_, skewness, iqr, rms))
 
-    # median
-    try:
-        median = np.median(signal)
-    except:
-        median = None
-
-    if dict['median']['use'] == 'yes':
-        args += [median]
-        names += ['median']
-
-    if dict['var']['use'] == 'yes':
-        # variance
-        try:
-            var = signal.var(ddof=1)
-        except:
-            var = None
-        args += [var]
-        names += ['var']
-
-    if dict['std']['use'] == 'yes':
-        # standard deviation
-        try:
-            std = signal.std(ddof=1)
-        except:
-            std = None
-        args += [std]
-        names += ['std']
-
-    if dict['abs_dev']['use'] == 'yes':
-        # absolute deviation
-        try:
-            abs_dev = np.sum(np.abs(signal - median))
-        except:
-            abs_dev = None
-        args += [abs_dev]
-        names += ['abs_dev']
-
-    if dict['kurtosis']['use'] == 'yes':
-        # kurtosis
-        try:
-            kurtosis = st.kurtosis(signal, bias=False)
-        except:
-            kurtosis = None
-        args += [kurtosis]
-        names += ['kurtosis']
-
-    if dict['skewness']['use'] == 'yes':
-        # skweness
-        try:
-            skewness = st.skew(signal, bias=False)
-        except:
-            skewness = None
-        args += [skewness]
-        names += ['skewness']
-
-    if dict['iqr']['use'] == 'yes':
-        # interquartile range
-        try:
-            iqr = np.percentile(signal, 75) - np.percentile(signal, 25)
-        except:
-            iqr = None
-        args += [iqr]
-        names += ['iqr']
-
-    if dict['meanadev']['use'] == 'yes':
-        # mean absolute deviation
-        try:
-            meanadev = np.mean([abs(x - mean) for x in signal])
-        except:
-            meanadev = None
-        args += [meanadev]
-        names += ['meanadev']
-
-    if dict['medadev']['use'] == 'yes':
-        # median absolute deviation
-        try:
-            medadev = np.median([abs(x - median) for x in signal])
-        except:
-            medadev = None
-        args += [medadev]
-        names += ['medadev']
-
-    if dict['rms']['use'] == 'yes':
-        # root mean square
-        try:
-            rms = np.sqrt(np.sum(np.array(signal) ** 2) / len(signal))
-        except:
-            rms = None
-        args += [rms]
-        names += ['rms']
-
-    if hist:
-        if dict['statistic_hist']['use'] == 'yes':
-            # histogram
-            try:
-                _hist = list(np.histogram(signal, bins=int(np.sqrt(len(signal))), density=True)[0])
-            except:
-                if len(signal) > 1:
-                    _hist = [None] * int(np.sqrt(len(signal)))
-                else:
-                    _hist = [None]
-            args += [i for i in _hist]
-            names += ['statistic_hist' + str(i) for i in range(len(_hist))]
-
-    return utils.ReturnTuple(tuple(args), tuple(names))

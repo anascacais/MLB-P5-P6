@@ -4,12 +4,11 @@ import os
 
 # third-party
 import numpy as np
-from . import pyhrv
 
 # local
+from features import eda
 from biosppy import utils
-from biosppy import eda
-from biosppy import tools as st
+from biosppy.signals import tools as st
 
 def eda_features(signal=None, sampling_rate=1000.):
     """Compute EDA characteristic metrics describing the signal.
@@ -52,7 +51,6 @@ def eda_features(signal=None, sampling_rate=1000.):
     """
     # ensure numpy
     signal = np.array(signal)
-    dict = json.load(open(os.path.join(os.path.abspath('.'), 'features', 'eda_features_log.json')))
     args, names = [], []
 
     # get EDR signal
@@ -62,48 +60,17 @@ def eda_features(signal=None, sampling_rate=1000.):
         scr = []
 
     # onsets, pks, amps
-    onsets, pks, amps, _ = eda.get_eda_param(scr, sampling_rate)
-    if dict['onsets']['use'] == 'yes':
-        args += [onsets]
-        names += ['onsets']
-    if dict['pks']['use'] == 'yes':
-        args += [pks]
-        names += ['pks']
-    if dict['amps']['use'] == 'yes':
-        args += [amps]
-        names += ['amps']
+    onsets, pks, amps, _ = eda.get_eda_param(scr)
 
     # phasic_rate
-    if dict['phasic_rate']['use'] == 'yes':
-        try:
-            phasic_rate = sampling_rate * (60. / np.diff(pks))
-        except:
-            phasic_rate = None
-        args += [phasic_rate]
-        names += ['phasic_rate']
-
-    if dict['rise_ts']['use'] == 'yes':
-        # rise_ts
-        try:
-            rise_ts = list(np.array(pks - onsets))
-        except:
-            rise_ts = None
-        args += [rise_ts]
-        names += ['rise_ts']
+    phasic_rate = sampling_rate * (60. / np.diff(pks))
+    
+    rise_ts = np.array(pks - onsets)
 
     # half, six, half_rise, half_rec, six_rec
     _, _, half_rise, half_rec, six_rise, six_rec = eda.edr_times(scr, onsets, pks)
-    if dict['half_rise']['use'] == 'yes':
-        args += [half_rise]
-        names += ['half_rise']
-    if dict['half_rec']['use'] == 'yes':
-        args += [half_rec]
-        names += ['half_rec']
-    if dict['six_rise']['use'] == 'yes':
-        args += [six_rise]
-        names += ['six_rise']
-    if dict['six_rec']['use'] == 'yes':
-        args += [six_rec]
-        names += ['six_rec']
 
-    return utils.ReturnTuple(tuple(args), tuple(names))
+    args = [np.array(onsets), np.array(pks), np.array(phasic_rate), np.array(rise_ts), np.array(half_rise), np.array(half_rec), np.array(six_rise), np.array(six_rec)]
+    names = ['onsets', 'pks', 'phasic_rate', 'rise_ts', 'half_rise', 'half_rec', 'six_rise', 'six_rec']
+
+    return args, names

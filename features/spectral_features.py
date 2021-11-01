@@ -129,7 +129,6 @@ def signal_spectral(signal, FS):
     spect_diff = np.diff(spectrum)
     #energy, _ = st.signal_energy(spectrum, f)[:]
 
-    dict = json.load(open(os.path.join(os.path.abspath('.'), 'features', 'spectral_features_log.json')))
     args, names = [], []
 
     if dict['spectral_maxpeaks']['use'] == 'yes':
@@ -298,4 +297,5 @@ def signal_spectral(signal, FS):
     #     args += [i for i in _hist]
     #     names += ['spectral_hist_' + str(i) for i in range(len(_hist))]
 
-    return utils.ReturnTuple(tuple(args), tuple(names))
+    #return utils.ReturnTuple(tuple(args), tuple(names))
+    return args, names
