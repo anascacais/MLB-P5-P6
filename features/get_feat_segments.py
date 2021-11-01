@@ -21,7 +21,6 @@ def signal_features(signal, sig_lab, sampling_rate):
     if 'EDA' in sig_lab.upper():
         eda_auxs, eda_names = eda_features.eda_features(signal, sampling_rate)
         for a, aux in enumerate(eda_auxs):
-            feats_names += [sig_lab + '_'+ eda_names[a] + '_' + feat for feat in stats_names]
             feats = np.hstack((feats, statistic_features.signal_stats(aux)))
         return feats, feats_names
 
@@ -32,30 +31,36 @@ def signal_features(signal, sig_lab, sampling_rate):
     else:
         return None
 
+def get_feat_names(sig_lab, feat_type):
+    feats_names = []
+    stats_names = ['mean', 'median', 'var', 'std', 'abs_dev', 'kurtosis', 'skewness', 'iqr', 'rms']
+    if 'stat' in feat_type:
+        feats_names += [sig_lab + '_' + feat for feat in stats_names]
+    if 'temp' in feat_type:
+        temp_names = ['maxAmp', 'minAmp', 'max', 'min', 'dist', 'autocorr', 'zero_cross', 'meanadiff', 'medadiff', 'mindiff', 'maxdiff', 'sadiff', 'meandiff', 'meddiff', 'total_energy', 'minpeaks', 'maxpeaks', 'temp_dev']
+        feats_names += [sig_lab + '_' + feat for feat in temp_names]
+    if 'signal' in feat_type:
+        if 'EDA':
+            eda_names = ['onsets', 'pks', 'phasic_rate', 'rise_ts', 'half_rise', 'half_rec', 'six_rise', 'six_rec']
+            feats_names += [sig_lab + '_'+ aux + '_' + feat for aux in eda_names for feat in stats_names]
+            
+    return feats_names
+
+
+
 def get_feat(signal, sig_lab, sampling_rate=1000., feat_type = ['stat'], windows_len=5, segment=True, save=False):
 
     print('here')
     feats = np.array([])
-    feats_names = []
 
     if 'stat' in feat_type:
-        stats_names = ['mean', 'median', 'var', 'std', 'abs_dev', 'kurtosis', 'skewness', 'iqr', 'rms']
-        feats_names += [sig_lab + '_' + feat for feat in stats_names]
         feats = np.hstack((feats, statistic_features.signal_stats(signal)))
-        assert(len(feats_names) == len(feats))
 
     if 'temp' in feat_type:
-        temp_names = ['maxAmp', 'minAmp', 'max', 'min', 'dist', 'autocorr', 'zero_cross', 'meanadiff', 'medadiff', 'mindiff', 'maxdiff', 'sadiff', 'meandiff', 'meddiff', 'total_energy', 'minpeaks', 'maxpeaks', 'temp_dev']
-
-        feats_names += [sig_lab + '_' + feat for feat in temp_names]
         feats = np.hstack((feats, temporal_features.signal_temp(signal, sampling_rate)))
-        assert(len(feats_names) == len(feats))
 
     if 'signal' in feat_type:
-        sig_feats, sig_names = signal_features(signal, sig_lab, sampling_rate)
-        assert(len(sig_feats) == len(sig_names))
-        feats_names += sig_names
-        feats = np.hstack((feats, sig_feats))
+        sig_feats, _ = signal_features(signal, sig_lab, sampling_rate)
 
     return feats
 

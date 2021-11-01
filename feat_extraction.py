@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 # local
-from features.get_feat_segments import get_feat
+from features.get_feat_segments import get_feat, get_feat_names
 
 # --------- CHANGE BEFORE RUNNING --------- #
 
@@ -63,7 +63,9 @@ def segment_df(df, modality, file_type, preseizure, postseizure, fs, feat_types,
     diff_time = np.diff(df.index).astype(f'timedelta64[{resolution}]')
     diff_time = np.argwhere(diff_time != datetime.timedelta(milliseconds=np.floor((1/fs)*1000))) 
 
-    feat_df = pd.DataFrame()
+    feature_names = get_feat_names(sig_lab=modality, feat_type=feat_types)
+
+    feat_df = pd.DataFrame(columns=feature_names)
 
     start, end = 0, -1
 
@@ -96,6 +98,8 @@ def extract_feat_seg(df, modality, fs, window, feat_types):
     print(f'     extracting features for {modality}')
 
     feat_type = ['geo', 'stat', 'spec', 'reg']
+
+    # get segments
     
     aux_df = get_feat(df.values, sig_lab=modality, sampling_rate=fs, feat_type=feat_types, windows_len=window)
     #verify number of samples and compare to expected
