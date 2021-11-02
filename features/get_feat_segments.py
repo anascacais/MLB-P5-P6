@@ -37,7 +37,7 @@ def get_feat_names(sig_lab, feat_type):
     if 'stat' in feat_type:
         feats_names += [sig_lab + '_' + feat for feat in stats_names]
     if 'temp' in feat_type:
-        temp_names = ['maxAmp', 'minAmp', 'max', 'min', 'dist', 'autocorr', 'zero_cross', 'meanadiff', 'medadiff', 'mindiff', 'maxdiff', 'sadiff', 'meandiff', 'meddiff', 'total_energy', 'minpeaks', 'maxpeaks', 'temp_dev']
+        temp_names = ['maxAmp', 'minAmp', 'max', 'min', 'dist', 'autocorr', 'zero_cross', 'meanadiff', 'medadiff', 'mindiff', 'maxdiff', 'sadiff', 'meandiff', 'meddiff', 'total_energy', 'minpeaks', 'maxpeaks', 'temp_dev', 'counter']
         feats_names += [sig_lab + '_' + feat for feat in temp_names]
     if 'signal' in feat_type:
         if 'EDA' in sig_lab.upper():

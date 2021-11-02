@@ -1,7 +1,3 @@
-# built-in
-import json
-import os
-
 # third-party
 import numpy as np
 
@@ -60,20 +56,20 @@ def eda_features(signal=None, sampling_rate=1000.):
         scr = []
 
     # onsets, pks, amps
-    onsets, pks, amps, _ = eda.get_eda_param(scr)
+    onsets, pks, amps = eda.get_eda_param(signal)
 
     # phasic_rate
     phasic_rate = sampling_rate * (60. / np.diff(pks))
     
-    rise_ts = np.array(pks - onsets)
+    rise_ts = (np.array(pks - onsets))/sampling_rate
 
     # half, six, half_rise, half_rec, six_rec
     if pks != [] and onsets != []:
-        _, _, half_rise, half_rec, six_rise, six_rec = eda.edr_times(scr, onsets, pks)
+        half_rec, six_rec = eda.edr_times(signal, onsets, pks)
     else:
         print('This window is too short to get onsets')
         half_rise, half_rec, six_rise, six_rec = 0., 0., 0., 0.
 
     # names = ['onsets', 'pks', 'phasic_rate', 'rise_ts', 'half_rise', 'half_rec', 'six_rise', 'six_rec']
 
-    return np.array(onsets), np.array(pks), np.array(phasic_rate), np.array(rise_ts), np.array(half_rise), np.array(half_rec), np.array(six_rise), np.array(six_rec)
+    return np.array(onsets), np.array(pks), np.array(phasic_rate), np.array(rise_ts), np.array(half_rise), np.array(six_rise)

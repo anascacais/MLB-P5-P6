@@ -3,6 +3,8 @@ import datetime
 
 # third-party
 import pandas as pd
+import numpy as np
+import biosppy as bp
 
 
 def get_possible_files(list_files, sz_event):
@@ -74,12 +76,49 @@ def edf_to_df(edf, col_name):
     return baseline_df
 
 
-def get_seizure_files(self):
+def get_seizure_files(patient):
 
     seizure_files = []
 
-    for sz in list(self.seizures.keys()):
+    for sz in list(patient.seizures.keys()):
 
-        seizure_files += list(self.seizures[sz].keys()) 
+        seizure_files += list(patient.seizures[sz].keys()) 
 
     return seizure_files
+
+
+def filter_modality(crop_signal, label, fs=128):
+
+    # ensure numpy
+    signal = np.array(crop_signal)
+    fs = float(fs)
+
+    if 'eda' in label.lower():
+        aux, _, _ = bp.signals.tools.filter_signal(
+        signal=signal,
+        ftype="butter",
+        band="lowpass",
+        order=4,
+        frequency=5,
+        sampling_rate=fs,)
+        # smooth
+        sm_size = int(0.75 * fs)
+        filtered, _ = bp.signals.tools.smoother(signal=aux, kernel="boxzen", size=sm_size, mirror=True)
+
+    elif 'bvp' in label.lower():
+        filtered, _, _ = bp.signals.tools.filter_signal(signal=signal,
+                                      ftype='butter',
+                                      band='bandpass',
+                                      order=4,
+                                      frequency=[1, 8],
+                                      sampling_rate=fs)
+        
+    elif 'temp' in label.lower():
+        sm_size = int(0.75 * fs)
+        filtered, _ = bp.signals.tools.smoother(signal=signal, kernel="boxzen", size=sm_size, mirror=True)
+
+    elif 'acc' in label.lower():
+        sm_size = int(0.75 * fs)
+        filtered, _ = bp.signals.tools.smoother(signal=signal, kernel="boxzen", size=sm_size, mirror=True)
+
+    return filtered

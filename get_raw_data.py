@@ -7,13 +7,12 @@ import pandas as pd
 import numpy as np
 import pyedflib as pyedf
 
-
 # local
 import utils
 
 def get_baseline_seizure_data(patients_info_dir, saving_dir):
 
-    list_patients = [patient_id for patient_id in os.listdir(patients_info_dir)]
+    list_patients = [patient_id for patient_id in os.listdir(patients_info_dir) if 'MSEL' in patient_id]
 
     for patient_id in list_patients:    
 
@@ -38,7 +37,7 @@ def get_baseline_seizure_data(patients_info_dir, saving_dir):
 def get_baseline_data(saving_dir, pat):
 
     # get the baseline files
-    baseline_files = [file for file in os.listdir(pat.path) if (file not in utils.get_seizure_files() and file.endswith('.edf') and 'Empatica' in file)]
+    baseline_files = [file for file in os.listdir(pat.path) if (file not in utils.get_seizure_files(pat) and file.endswith('.edf') and 'Empatica' in file)]
 
     if baseline_files == []:
         print('    patient has no baseline Empatica files')
@@ -82,7 +81,7 @@ def get_baseline_data(saving_dir, pat):
 
 def get_seizures_data(saving_dir, pat):
 
-    seizure_files = [file for file in utils.get_seizure_files() if 'Empatica' in file]
+    seizure_files = [file for file in utils.get_seizure_files(pat) if 'Empatica' in file]
     
     if seizure_files == []:
         print('    patient has no seizures recorded in Empatica files')

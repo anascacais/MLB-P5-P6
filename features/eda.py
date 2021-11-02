@@ -304,7 +304,7 @@ def get_eda_param(signal, min_amplitude=0.01):
     end : array
         Indices of the SCR end.
     """
-    min_amplitude = np.max(signal)
+    min_amplitude = np.mean(signal) * 0.01
     zeros = st.find_extrema(signal=signal, mode='min')[0]
     scrs, amps, onsets, pks, end, wind = [], [], [], [], [], []
     for i in range(0, len(zeros) - 1, 1):
@@ -318,7 +318,7 @@ def get_eda_param(signal, min_amplitude=0.01):
                 onsets += [zeros[i]]
                 end += [zeros[i + 1]]
 
-    return np.array(onsets), np.array(pks), np.array(amps), np.array(end)
+    return np.array(onsets), np.array(pks), np.array(amps)
 
 
 def edr_times(signal, onsets, pks):
@@ -342,11 +342,11 @@ def edr_times(signal, onsets, pks):
     half_rise : list
         Half Rise times, i.e. time between onset and 50% amplitude.
     half_rec : list
-        Half Recovery times, i.e. time between peak and 63% amplitude.
+        Half Recovery times, i.e. time between peak and 50% amplitude.
     six_rise : list
         63 % rise times, i.e. time between onset and 63% amplitude.
     six_rec : list
-        63 % recovery times, i.e. time between peak and 50% amplitude.
+        63 % recovery times, i.e. time between peak and 63% amplitude.
 
     """
     a = np.array(signal[pks[:]] - signal[onsets[:]])
@@ -361,26 +361,25 @@ def edr_times(signal, onsets, pks):
     six_rec = []
     six_rise = []
     for i in range(li):
-        n_p_1 += 1
-        n_p_2 += 1
-        half_rec_amp = 0.5 * (a[i] + signal[onsets[i]])
-        six_rec_amp = 0.37 * (a[i] + signal[onsets[i]])
+        half_rec_amp = 0.5 * a[i] + signal[onsets][i]
+        six_rec_amp = 0.5 * a[i] + signal[onsets][i]
         try:
             wind = np.array(signal[pks[i]:onsets[i + 1]])
         except:
             wind = np.array(signal[pks[i]:])
-        for ts_idx in range(len(wind)):
-            if wind[ts_idx] <= half_rec_amp:
-                half += [pks[i] + ts_idx for n in range(n_p_2)]
-                half_rise += [half[-n] - onsets[i] for n in range(n_p_2, 0, -1)]
-                half_rec += [half[i-n] - pks[i] for n in range(n_p_2, 0, -1)]
-                n_p_1 = 0
-                break
-        for ts_idx in range(len(wind)):
-            if wind[ts_idx] <= six_rec_amp:
-                six += [pks[i] + ts_idx for n in range(n_p_2)]
-                six_rise += [six[-n] - onsets[i] for n in range(n_p_2, 0, -1)]
-                six_rec += [six[-n] - pks[i] for n in range(n_p_2, 0, -1)]
-                n_p_2 = 0
-                break
-    return half, six, half_rise, half_rec, six_rise, six_rec
+        half_rec_idx = np.argwhere(wind <= half_rec_amp)
+        six_rec_idx = np.argwhere(wind <= six_rec_amp)
+        if len(half_rec_idx) > 0:
+            half_rec += [half_rec_idx[0][0] + pks[i]]
+        if len(six_rec_idx) > 0:
+            six_rec += [six_rec_idx[0][0] + pks[i]]
+
+        #for ts_idx in range(len(wind)):
+         #   if wind[ts_idx] <= half_rec_amp:
+          #      half += [pks[i] + ts_idx for n in range(n_p_1)]
+           #     half_rise += [half[-n] - onsets[i] for n in range(n_p_1, 0, -1)]
+            #    half_rec += [half[i-n] - pks[i] for n in range(n_p_1, 0, -1)]
+             #   n_p_1 = 0
+              #  break
+
+    return half_rec, six_rec 

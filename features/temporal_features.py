@@ -128,7 +128,6 @@ def signal_temp(signal, FS):
     maxpeaks = np.sum([1 for nd in range(len(sig_diff[:-1])) if (sig_diff[nd+1]<0 and sig_diff[nd]>0)])
     # temporal deviation
     temp_dev = (1/np.sum(signal)) * np.sum((signal[:] - signal[1])/np.array(time))
-        
+    counter = len(signal)
     #return utils.ReturnTuple(tuple(args), tuple(names))
-    return maxAmp, minAmp, max, min, dist, autocorr, zero_cross, meanadiff, medadiff, mindiff, maxdiff, sadiff, meandiff, meddiff, total_energy, minpeaks, maxpeaks, temp_dev
-
+    return maxAmp, minAmp, max, min, dist, autocorr, zero_cross, meanadiff, medadiff, mindiff, maxdiff, sadiff, meandiff, meddiff, total_energy, minpeaks, maxpeaks, temp_dev, counter

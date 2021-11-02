@@ -29,6 +29,7 @@ def annot2patient(db_dir, saving_directory):
                 db_dir, patient_id))
             pat.modalities = pat.get_modalities_available()
 
+            # this will return a dict whose values are None, but that will be changed later on
             print(f'    modalities: {pat.modalities}')
 
             pat.seizures_csv = pat.get_seizures_csv()
@@ -38,7 +39,7 @@ def annot2patient(db_dir, saving_directory):
             for sz_event in pat.seizures_csv:
                 dict_seizures['Seizure_' + str(i+1)] = {}
                 
-                print(f'\n    --- Checking seizure {sz_event["start_time"]} ---')
+                print(f'\n    --- Checking seizure {str(i+1)} ---')
 
                 for mod in pat.modalities:
 
@@ -54,7 +55,7 @@ def annot2patient(db_dir, saving_directory):
                             file_path=os.path.join(pat.path, file), sz_event=sz_event, mod=mod)
 
                         if aux is not None:
-                            dict_seizures['Seizure_' + str(i)][file] =  aux
+                            dict_seizures['Seizure_' + str(i+1)][file] =  aux
                 i += 1
             pat.seizures = dict_seizures
 
