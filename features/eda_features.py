@@ -68,9 +68,12 @@ def eda_features(signal=None, sampling_rate=1000.):
     rise_ts = np.array(pks - onsets)
 
     # half, six, half_rise, half_rec, six_rec
-    _, _, half_rise, half_rec, six_rise, six_rec = eda.edr_times(scr, onsets, pks)
+    if pks != [] and onsets != []:
+        _, _, half_rise, half_rec, six_rise, six_rec = eda.edr_times(scr, onsets, pks)
+    else:
+        print('This window is too short to get onsets')
+        half_rise, half_rec, six_rise, six_rec = 0., 0., 0., 0.
 
-    args = [np.array(onsets), np.array(pks), np.array(phasic_rate), np.array(rise_ts), np.array(half_rise), np.array(half_rec), np.array(six_rise), np.array(six_rec)]
-    names = ['onsets', 'pks', 'phasic_rate', 'rise_ts', 'half_rise', 'half_rec', 'six_rise', 'six_rec']
+    # names = ['onsets', 'pks', 'phasic_rate', 'rise_ts', 'half_rise', 'half_rec', 'six_rise', 'six_rec']
 
-    return args, names
+    return np.array(onsets), np.array(pks), np.array(phasic_rate), np.array(rise_ts), np.array(half_rise), np.array(half_rec), np.array(six_rise), np.array(six_rec)
