@@ -37,8 +37,8 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
             modality = filename.split('_')[-1]
             fs = pat.modalities[modality]
 
-            preseizure = int(preseizure * fs)
-            postseizure = int(postseizure * fs)
+            preseizure_ = int(preseizure * fs)
+            postseizure_ = int(postseizure * fs)
 
             new_file_name = f'features_{filename.split("_")[1]}_{modality}_{window}s_{int(overlap*100)}'
 
@@ -74,6 +74,7 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
             end = diff+1
             crop_df = df.iloc[start:end]
             aux_feat_df = pd.DataFrame()
+            
             
             if 'sz' in df.columns:
                 sz_ = expand_pre_post_sz(crop_df['sz'].values, preseizure, postseizure)
@@ -127,7 +128,7 @@ def extract_feat_seg(df, modality, fs, feat_types, window, overlap_window):
 
 
 def expand_pre_post_sz(seizures, preseizure, postseizure):
-    import matplotlib.pyplot as plt
+
     expanded_seizures = np.copy(seizures)
 
     uni = np.unique(seizures)
@@ -136,7 +137,9 @@ def expand_pre_post_sz(seizures, preseizure, postseizure):
         if sz == 0: 
             continue
         indx = np.argwhere(seizures == sz)
-        aux_ind = np.arange(int(indx[0])-preseizure, int(indx[-1])+postseizure)
+        start_ind = max(int(indx[0])-preseizure, 0)
+        end_ind = min(int(indx[-1])+postseizure, len(seizures)-1)
+        aux_ind = np.arange(start_ind, end_ind)
         np.put(expanded_seizures, aux_ind, sz*np.ones((len(aux_ind),)))
 
     return expanded_seizures

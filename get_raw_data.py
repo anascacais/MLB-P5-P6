@@ -87,7 +87,7 @@ def get_seizures_data(saving_dir, pat):
         print('    patient has no seizures recorded in Empatica files')
         return None
 
-    target_mod = set([base.split(' - ')[-1][:-4] for base in seizure_files])
+    target_mod = list(set([base.split(' - ')[-1][:-4] for base in seizure_files]))
 
     if all([os.path.exists(os.path.join(saving_dir, f'baseline_data_{modality}.edf')) for modality in target_mod]):
         print('    patient already has seizures data')
