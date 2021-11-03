@@ -17,20 +17,20 @@ db_dir = '/Users/anascacais/OneDrive - Universidade de Lisboa/BD-Seer'
 
 # choose directory where to save the project's data
 #src_dir = os.getcwd()
-src_dir = '/Users/anascacais/Documents'
+src_dir = '/Users/anascacais/Documents/MLB'
 
 # choose modalities (for all modalities available, choose None)
 modalities = ['EDA'] 
 
 # choose time interval to consider as seizure before and after the annotated seizure
-preseizure = 30
-postseizure = 10
+preseizure = 300
+postseizure = 120
 
 # choose type of features to extract
 feat_types = ['temp', 'stat', 'spec', 'signal']
 
 # choose parameters of sliding window approach
-window = 5 # in seconds
+window = 20 # in seconds
 overlap = 0.5 # in percentage (of window)
 
 # ----------------------------------------- #

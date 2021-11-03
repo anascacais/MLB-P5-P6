@@ -8,13 +8,11 @@ from biosppy import eda, signals
 from sklearn.model_selection import cross_val_score
 
 # local
-from . import bvp_features, eda_features, hrv_features, spectral_features, statistic_features, temporal_features
+from . import bvp_features, eda_features, hrv_features, statistic_features, temporal_features
 
 
 def signal_features(signal, sig_lab, sampling_rate):
 
-    stats_names = ['mean', 'median', 'var', 'std', 'abs_dev', 'kurtosis', 'skewness', 'iqr', 'rms']
-    feats_names = []
     feats = np.array([])
     
     if 'EDA' in sig_lab.upper():
@@ -64,32 +62,6 @@ def get_feat(signal, sig_lab, sampling_rate=1000., feat_type = ['stat']):
             feats = np.hstack((feats, sig_feats))
 
     return feats
-
-
-
-def remove_correlatedFeatures(df, threshold=0.85):
-    """ Removes highly correlated features.
-    Parameters
-    ----------
-    df : dataframe
-        Feature vector.
-    threshold : float
-        Threshold for correlation.
-
-    Returns
-    -------
-    df : dataframe
-        Feature dataframe without high correlated features.
-
-    """
-    df = df.replace([np.inf, -np.inf, np.nan, None], 0.0)
-    profile = pandas_profiling.ProfileReport(df)
-    reject = profile.get_rejected_variables(threshold=threshold)
-    for rej in reject:
-        print('Removing ' + str(rej))
-        df = df.drop(rej, axis=1)
-
-    return df
 
 
 def FSE(X_train, y_train, features_descrition, classifier, CV=10):

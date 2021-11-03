@@ -46,7 +46,7 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
                 print('features already extract for patient ', patient_id, ' are ', new_file_name)
                 continue
             
-            segments = segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types)
+            segments = segment_df(df, preseizure_, postseizure_, window, overlap, fs, feat_types)
             segments.to_hdf(os.path.join(saving_dir, patient_id, new_file_name+'.h5'), mode='w', key='df')
 
             segments.to_hdf(os.path.join(saving_dir, f'features_{filename.split("_")[1]}_{modality}'))
