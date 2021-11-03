@@ -48,16 +48,16 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
             modality = filename.split('_')[-1]
             fs = pat.modalities[modality]
 
-            preseizure = int(preseizure * fs)
-            postseizure = int(postseizure * fs)
+            preseizure_ = int(preseizure * fs)
+            postseizure_ = int(postseizure * fs)
 
-            new_file_name = '_'.join(['features', filename.split('_')[1], modality, str(window), 's'])
+            new_file_name = '_'.join(['features', filename.split('_')[1], modality, str(window)+'s'])
 
             if new_file_name+'.h5' in os.listdir(os.path.join(saving_dir, patient_id)):
                 print('features already extract for patient ', patient_id, ' are ', new_file_name)
                 continue
             
-            segments = segment_df(df, preseizure, postseizure, window, fs, feat_types)
+            segments = segment_df(df, preseizure_, postseizure_, window, fs, feat_types)
             segments.to_hdf(os.path.join(saving_dir, patient_id, new_file_name+'.h5'), mode='w', key='df')
 
 
@@ -92,6 +92,7 @@ def segment_df(df, preseizure, postseizure, window, fs, feat_types, resolution='
 
             #print(np.unique(np.diff(crop_df.index).astype(f'timedelta64[{resolution}]')))
             
+            
             if 'sz' in df.columns:
                 sz_ = expand_pre_post_sz(crop_df['sz'].values, preseizure, postseizure)
                 sz_ = [sz_[i] for i in range(0, len(crop_df)-window, overlap_window)]
@@ -105,6 +106,7 @@ def segment_df(df, preseizure, postseizure, window, fs, feat_types, resolution='
                 aux_feat_df = pd.concat((aux_feat_df, extract_feat_seg(aux_df, m, fs, feat_types, window, overlap_window)), axis=1)
             
             aux_feat_df.index = time_
+            aux_feat_df['sz'] = sz_
             feat_df = pd.concat([feat_df, aux_feat_df], axis=0)
 
             start = diff+1
@@ -136,29 +138,18 @@ def extract_feat_seg(df, modality, fs, feat_types, window, overlap_window):
 
 
 def expand_pre_post_sz(seizures, preseizure, postseizure):
-    import matplotlib.pyplot as plt
+
     expanded_seizures = np.copy(seizures)
-    #plt.figure()
 
     uni = np.unique(seizures)
     for sz in uni:
         if sz == 0: 
             continue
         indx = np.argwhere(seizures == sz)
-        aux_ind = np.arange(int(indx[0])-preseizure, int(indx[-1])+postseizure)
+        start_ind = max(int(indx[0])-preseizure, 0)
+        end_ind = min(int(indx[-1])+postseizure, len(seizures)-1)
+        aux_ind = np.arange(start_ind, end_ind)
         np.put(expanded_seizures, aux_ind, sz*np.ones((len(aux_ind),)))
-        #plt.plot(aux_ind, sz*np.ones((len(aux_ind),)))
-
-    uni = np.unique(expanded_seizures)
-    for sz in uni:
-        if sz == 0: 
-            continue
-        indx = np.argwhere(expanded_seizures == sz)
-        aux_ind = np.arange(int(indx[0])-preseizure, int(indx[-1])+postseizure)
-        print(f'{len(np.argwhere(seizures == sz))} vs {len(np.argwhere(expanded_seizures == sz))}')
-        #plt.plot(aux_ind, sz*np.ones((len(aux_ind),)))
-    
-    #plt.show()
 
     return expanded_seizures
 
