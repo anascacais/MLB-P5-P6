@@ -10,19 +10,8 @@ import pandas as pd
 # local
 from features.get_feat_segments import get_feat, get_feat_names
 
-# # --------- CHANGE BEFORE RUNNING --------- #
 
-# src_dir = '/Users/anascacais/Documents'
-# window = 5 # in seconds
-# preseizure = 30 # in seconds
-# postseizure = 10 # in seconds
-# # ----------------------------------------- #
-
-# patients_info_dir = os.path.join(src_dir, 'patients-info')
-# filt_data_dir = os.path.join(src_dir, 'filtered-data-df')
-# saving_dir = os.path.join(src_dir, 'features')
-
-def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, modalities=None, preseizure=0, postseizure=0, window=30):
+def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, modalities=None, preseizure=0, postseizure=0, window=30, overlap=0.5):
 
     list_patients = [patient_id for patient_id in os.listdir(filt_data_dir) if os.path.isdir(os.path.join(filt_data_dir, patient_id))] 
 
@@ -60,17 +49,16 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
             segments = segment_df(df, preseizure, postseizure, window, fs, feat_types)
             segments.to_hdf(os.path.join(saving_dir, patient_id, new_file_name+'.h5'), mode='w', key='df')
 
+            segments.to_hdf(os.path.join(saving_dir, f'features_{filename.split("_")[1]}_{modality}'))
 
 
 # ---------- AUXILIARY FUNCTIONS ---------- #
 
-def segment_df(df, preseizure, postseizure, window, fs, feat_types, resolution='ms'):
+def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, resolution='ms'):
 
     # find where the diff between timestamps is different than what expected, to the millisecond ((1/fs)*1000)
     diff_time = np.diff(df.index).astype(f'timedelta64[{resolution}]')
     diff_time = np.argwhere(diff_time != datetime.timedelta(milliseconds=np.floor((1/fs)*1000))) 
-
-    overlap = 0.5
 
     feat_df = pd.DataFrame()
     window = int(window * fs)
@@ -105,6 +93,8 @@ def segment_df(df, preseizure, postseizure, window, fs, feat_types, resolution='
                 aux_feat_df = pd.concat((aux_feat_df, extract_feat_seg(aux_df, m, fs, feat_types, window, overlap_window)), axis=1)
             
             aux_feat_df.index = time_
+            aux_feat_df['sz'] = sz_
+
             feat_df = pd.concat([feat_df, aux_feat_df], axis=0)
 
             start = diff+1
@@ -141,24 +131,25 @@ def expand_pre_post_sz(seizures, preseizure, postseizure):
     #plt.figure()
 
     uni = np.unique(seizures)
+
     for sz in uni:
         if sz == 0: 
             continue
         indx = np.argwhere(seizures == sz)
         aux_ind = np.arange(int(indx[0])-preseizure, int(indx[-1])+postseizure)
         np.put(expanded_seizures, aux_ind, sz*np.ones((len(aux_ind),)))
-        #plt.plot(aux_ind, sz*np.ones((len(aux_ind),)))
+        # plt.plot(aux_ind, sz*np.ones((len(aux_ind),)))
 
-    uni = np.unique(expanded_seizures)
-    for sz in uni:
-        if sz == 0: 
-            continue
-        indx = np.argwhere(expanded_seizures == sz)
-        aux_ind = np.arange(int(indx[0])-preseizure, int(indx[-1])+postseizure)
-        print(f'{len(np.argwhere(seizures == sz))} vs {len(np.argwhere(expanded_seizures == sz))}')
-        #plt.plot(aux_ind, sz*np.ones((len(aux_ind),)))
+    # uni = np.unique(expanded_seizures)
+    # for sz in uni:
+    #     if sz == 0: 
+    #         continue
+    #     indx = np.argwhere(expanded_seizures == sz)
+    #     aux_ind = np.arange(int(indx[0])-preseizure, int(indx[-1])+postseizure)
+    #     print(f'{len(np.argwhere(seizures == sz))} vs {len(np.argwhere(expanded_seizures == sz))}')
+    #     plt.plot(aux_ind, sz*np.ones((len(aux_ind),)))
     
-    #plt.show()
+    # plt.show()
 
     return expanded_seizures
 

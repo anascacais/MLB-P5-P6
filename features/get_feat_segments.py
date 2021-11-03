@@ -4,12 +4,11 @@ import time
 # third-party
 import numpy as np
 import pandas as pd
-#import pandas_profiling
+from biosppy import eda, signals
 from sklearn.model_selection import cross_val_score
 
 # local
-from features import eda, bvp_features, eda_features, hrv_features, spectral_features, statistic_features, temporal_features
-from biosppy import signals
+from . import bvp_features, eda_features, hrv_features, spectral_features, statistic_features, temporal_features
 
 
 def signal_features(signal, sig_lab, sampling_rate):

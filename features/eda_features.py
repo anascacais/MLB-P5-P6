@@ -1,5 +1,6 @@
 # third-party
 import numpy as np
+from biosppy import eda
 
 # local
 from features import eda, statistic_features, temporal_features

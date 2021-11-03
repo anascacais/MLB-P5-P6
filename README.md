@@ -1,4 +1,4 @@
-# MLB Epilepsy Projects 2021/22
+ # MLB Epilepsy Projects 2021/22
 ## _Dealing with this hell-born database_
 
 This repository was created to failitate the use of [Seer Medical Epilepsy database][db] (DB) and provides the necessary scripts for:
@@ -15,27 +15,41 @@ This repository was created to failitate the use of [Seer Medical Epilepsy datab
 
 The script "pipeline.py" will perform the following actions in order:
 - Extract information from the database (annot2patient.py)
-- Extract concatenate all baseline data for each patient, as well as for seizure data (individually for each modality)
+- Extract and concatenate all baseline data for each patient, as well as for seizure data (individually for each modality)
 - Filter data according to each modality
 - Extract features using a sliding window approach (with overlap), individually for each modality
+- ✨Magic ✨
 
 
 
-## 1. How to get the DB information (annot2patient.py):
+## 1. How to get the DB information (*annot2patient.py*):
 
 - A folder called "patient-info" will be created and populated with the DB info for each patient;
 - Each patient object holds the information of the corresponding patient from all the patient's files, including: directory with the original patient's files, available modalities and seizure information (i.e.: seizure type, files that contain those seizures and respective indexes).
 
-Note: the script *check_patient_info* can be run after annot2patient and checks if the number of seizures in the DB annotations corresponds to the number of seizures in the patient object created.
+Note: the script *check_patient_info* can be run after *annot2patient* and checks if the number of seizures in the DB annotations corresponds to the number of seizures in the patient object created.
 
-## 2. How to get the patients' data into something workable (get_baseline_seizure_data.py):
+## 2. How to get the patients' data into something workable (*get_baseline_seizure_data.py*):
 
-- A folder called "raw-data-df" will be created and populated with a folder for each patient which, in turn, will hold the baseline and seizure dataframes for that patient;
-- These dataframes correspond to the concatenated baseline/seizure files for each modality, individually. However, seizure dataframes have an additional column that labels each timestamp with a 0 (if it does not correspond to an annotated seizure) or with a number i (corresponding to the i-th annotated seizure for that patient)(check the notebook in *example* to take a look at these structures).
-- ✨Magic ✨
+- A folder called "raw-data-df" will be created and populated with a folder for each patient which, in turn, will hold the baseline and seizure dataframes for that patient, one for each modality;
+- These dataframes correspond to the concatenated baseline/seizure files for each modality, individually. However, seizure dataframes have an additional column that labels each timestamp with a 0 (if it does not correspond to an annotated seizure) or with a number i (corresponding to the i-th annotated seizure for that patient) - check the notebook in *example* to take a look at these structures.
 
-## 3. 
+## 3. Filtering (*filtering.py*)
 
+- A folder called "filtered-data-df" will be created - with the same structure as "raw-data-df", but with the filtered data instead (the data frames have the same structure as well).
+
+## 4. Feature extraction (*feat_extraction.py*)
+
+- A folder called "features" will be created - with the same structure as "raw-data-df";
+- This script needs a window size (in seconds) and an overlap (in percentage) to perform feature extraction, individually for each modality, in a sliding window approach;
+- During this process, the discontinuities in time are taken into account (so that non-continuous segments are not put inside the same window);
+- The resulting dataframe is very similar to the previous ones, but the timestamps in index correspond to the start of the corresponding segment (whose length = *window*) - check the notebook in *example* to take a look at these structures.
+
+## 5. Joining modalities
+
+- In order to join modalities, we need to make sure the timestamps are aligned (so that they correspond to the same interval in time). However, since the timestamps have a resolution up to the nanosecond, many of them are only slightly misaligned - but it would still cause an error of alignment.
+- To deal with this, we reduce the resolution to the millisecond, which still allows to preserve the necessary time information, as well as reducing the alignment issues;
+- In this script, we provide the modalities whose features we want to join and it joins the corresponding dataframes and removes the time intervals that do not contain at least one of the modalities - check the notebook in *example* to take a look at this process.
 
 
 ## License

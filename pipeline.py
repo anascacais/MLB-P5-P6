@@ -5,7 +5,7 @@ import pickle
 # local
 from annot2patient import annot2patient
 from get_raw_data import get_baseline_seizure_data
-from filtering import filter_data, get_filtered_data
+from filtering import filter_data
 from feat_extraction import feat_extraction
 
 # --------- CHANGE BEFORE RUNNING --------- #
@@ -16,8 +16,19 @@ db_dir = 'MLB-Seer'
 # choose directory where to save the project's data
 src_dir = os.getcwd()
 
-# choose modalities
-modalities = ['EDA']
+# choose modalities (for all modalities available, choose None)
+modalities = ['EDA'] 
+
+# choose time interval to consider as seizure before and after the annotated seizure
+preseizure = 30
+postseizure = 10
+
+# choose type of features to extract
+feat_types = ['temp', 'stat', 'spec', 'signal']
+
+# choose parameters of sliding window approach
+window = 5 # in seconds
+overlap = 0.5 # in percentage (of window)
 
 # ----------------------------------------- #
 
@@ -31,6 +42,6 @@ print('Get baseline and seizure data ...')
 get_baseline_seizure_data(patients_info_dir, raw_data_dir)
 print('Filter baseline and seizure data ...')
 filter_data(filt_data_dir, patients_info_dir, raw_data_dir, modalities)
-print('Extract baseline and seizure data ...')
-feat_extraction(patients_info_dir, filt_data_dir, features_dir, preseizure=300, postseizure=120, window=20, feat_types=['temp', 'stat', 'spec', 'signal'], modalities=['EDA'])
+feat_extraction(patients_info_dir, filt_data_dir, features_dir, feat_types, modalities, preseizure, postseizure, window, overlap)
+
 
