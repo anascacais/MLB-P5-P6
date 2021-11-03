@@ -11,9 +11,10 @@ import pandas as pd
 from features.get_feat_segments import get_feat, get_feat_names
 
 
-def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, modalities=None, preseizure=0, postseizure=0, window=30, overlap=0.5):
+def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, modalities=None, list_patients=None, preseizure=0, postseizure=0, window=30, overlap=0.5):
 
-    list_patients = [patient_id for patient_id in os.listdir(filt_data_dir) if os.path.isdir(os.path.join(filt_data_dir, patient_id))] 
+    if list_patients is None:
+        list_patients = [patient_id for patient_id in os.listdir(filt_data_dir) if os.path.isdir(os.path.join(filt_data_dir, patient_id))] 
 
     for patient_id in list_patients:    
 

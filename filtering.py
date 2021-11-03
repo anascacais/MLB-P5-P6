@@ -11,9 +11,10 @@ import pandas as pd
 import utils
 
 
-def filter_data(saving_dir, patients_info_dir, raw_data_dir, modalities=None):
+def filter_data(saving_dir, patients_info_dir, raw_data_dir, modalities=None, list_patients=None):
 
-    list_patients = [patient_id for patient_id in os.listdir(raw_data_dir) if os.path.isdir(os.path.join(raw_data_dir, patient_id))] 
+    if list_patients is None:
+        list_patients = [patient_id for patient_id in os.listdir(raw_data_dir) if os.path.isdir(os.path.join(raw_data_dir, patient_id))] 
 
     for patient_id in list_patients:    
 
@@ -36,11 +37,6 @@ def filter_pat_data(saving_directory, start_directory, pat, modalities):
 
     for modality in modalities:
         print('     Filtering --- ' + modality)
-        
-        # # if filtered data already exists in directory, continue without processing
-        # if 'filtered_b_data_' + modality in os.listdir(os.path.join(saving_directory, pat.id)):
-        #     print(f'     modality was already filtered, this task will be ignored')
-        #     continue
         
         # get the file name of the modality, within the start directory
         file_names = [file for file in os.listdir(os.path.join(start_directory, pat.id)) if modality in file]

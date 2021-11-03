@@ -70,7 +70,10 @@ def get_baseline_data(saving_dir, pat):
             name = f'{pat.id} - {date} - {modality}.edf'
             print(f'        file {name}')
 
-            edf = pyedf.EdfReader(os.path.join(pat.path, name))
+            try:
+                edf = pyedf.EdfReader(os.path.join(pat.path, name))
+            except Exception as e:
+                print(e)
 
             # concatenate the new dataframe with df
             df = pd.concat((df, utils.edf_to_df(edf, modality)), axis=0) 
