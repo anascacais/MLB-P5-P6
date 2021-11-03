@@ -80,7 +80,7 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
                 sz_ = expand_pre_post_sz(crop_df['sz'].values, preseizure, postseizure)
                 crop_df['sz'] = sz_
                 crop_df = crop_df[crop_df.sz != 0.]
-                sz_ = [sz_[i] for i in range(0, len(crop_df)-window, overlap_window)]
+                sz_ = [crop_df.sz[i] for i in range(0, len(crop_df)-window, overlap_window)]
                 
                 
 
@@ -138,7 +138,7 @@ def expand_pre_post_sz(seizures, preseizure, postseizure):
             continue
         indx = np.argwhere(seizures == sz)
         start_ind = max(int(indx[0])-preseizure, 0)
-        end_ind = min(int(indx[-1])+postseizure, len(seizures)-1)
+        end_ind = min(int(indx[-1])+postseizure+1, len(seizures))
         aux_ind = np.arange(start_ind, end_ind)
         np.put(expanded_seizures, aux_ind, sz*np.ones((len(aux_ind),)))
 

@@ -41,10 +41,13 @@ filt_data_dir = os.path.join(src_dir, 'filtered-data-df')
 features_dir = os.path.join(src_dir, 'features-data')
 
 annot2patient(db_dir, patients_info_dir)
+
 print('Get baseline and seizure data ...')
 get_baseline_seizure_data(patients_info_dir, raw_data_dir)
+
 print('Filter baseline and seizure data ...')
 filter_data(filt_data_dir, patients_info_dir, raw_data_dir, modalities)
+
 print('Extract baseline and seizure features ...')
 feat_extraction(patients_info_dir, filt_data_dir, features_dir, feat_types, modalities, preseizure, postseizure, window, overlap)
 
