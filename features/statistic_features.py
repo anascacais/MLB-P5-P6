@@ -52,16 +52,19 @@ def signal_stats(signal=None, hist=True):
 
     # ensure numpy
     signal = np.array(signal)
-    mean = np.mean(signal)
-    median = np.median(signal)
-    var = np.var(signal)
-    std = np.std(signal)
-    abs_dev = np.sum(np.abs(signal - median))
-    kurtosis_ = kurtosis(signal)
-    skewness = skew(signal)
-    iqr = np.percentile(signal, 75) - np.percentile(signal, 25)
-    rms = np.sqrt(np.sum(np.array(signal) ** 2) / len(signal))
+    if len(signal) == 0:
+        return 0., 0., 0., 0., 0., 0. ,0. ,0. ,0. 
+    else:
+        mean = np.mean(signal)
+        median = np.median(signal)
+        var = np.var(signal)
+        std = np.std(signal)
+        abs_dev = np.sum(np.abs(signal - median))
+        kurtosis_ = kurtosis(signal)
+        skewness = skew(signal)
+        iqr = np.percentile(signal, 75) - np.percentile(signal, 25)
+        rms = np.sqrt(np.sum(np.array(signal) ** 2) / len(signal))
 
 
-    return np.hstack((mean, median, var, std, abs_dev, kurtosis_, skewness, iqr, rms))
+        return np.hstack((mean, median, var, std, abs_dev, kurtosis_, skewness, iqr, rms))
 

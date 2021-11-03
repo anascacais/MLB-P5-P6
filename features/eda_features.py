@@ -2,7 +2,9 @@
 import numpy as np
 
 # local
-from features import eda
+from features import eda, statistic_features, temporal_features
+
+
 from biosppy import utils
 from biosppy.signals import tools as st
 
@@ -67,9 +69,18 @@ def eda_features(signal=None, sampling_rate=1000.):
     if pks != [] and onsets != []:
         half_rec, six_rec = eda.edr_times(signal, onsets, pks)
     else:
-        print('This window is too short to get onsets')
-        half_rise, half_rec, six_rise, six_rec = 0., 0., 0., 0.
+        # print('This window is too short to get onsets')
+        half_rise, half_rec, six_rise, six_rec = [], [], [], []
 
     # names = ['onsets', 'pks', 'phasic_rate', 'rise_ts', 'half_rise', 'half_rec', 'six_rise', 'six_rec']
 
-    return np.array(onsets), np.array(pks), np.array(phasic_rate), np.array(rise_ts), np.array(half_rise), np.array(six_rise)
+    count_pks = len(pks)
+    count_onsets = len(onsets)
+    phasic_stats = statistic_features.signal_stats(phasic_rate)
+    amps_stats = statistic_features.signal_stats(amps)
+    
+    count_half = len(half_rec)
+    
+    #return np.array(onsets), np.array(pks), np.array(phasic_rate), np.array(rise_ts), np.array(half_rise), np.array(six_rise)
+
+    return np.hstack((count_onsets, count_pks, count_half, phasic_stats, amps_stats))

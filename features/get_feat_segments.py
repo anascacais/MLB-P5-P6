@@ -19,9 +19,7 @@ def signal_features(signal, sig_lab, sampling_rate):
     feats = np.array([])
     
     if 'EDA' in sig_lab.upper():
-        eda_auxs = eda_features.eda_features(signal, sampling_rate)
-        for a, aux in enumerate(eda_auxs):
-            feats = np.hstack((feats, statistic_features.signal_stats(aux)))
+        feats = eda_features.eda_features(signal, sampling_rate)
         return feats
 
     elif 'BVP' in sig_lab.upper():
@@ -32,6 +30,7 @@ def signal_features(signal, sig_lab, sampling_rate):
         return None
 
 def get_feat_names(sig_lab, feat_type):
+
     feats_names = []
     stats_names = ['mean', 'median', 'var', 'std', 'abs_dev', 'kurtosis', 'skewness', 'iqr', 'rms']
     if 'stat' in feat_type:
@@ -41,16 +40,15 @@ def get_feat_names(sig_lab, feat_type):
         feats_names += [sig_lab + '_' + feat for feat in temp_names]
     if 'signal' in feat_type:
         if 'EDA' in sig_lab.upper():
-            eda_names = ['onsets', 'pks', 'phasic_rate', 'rise_ts', 'half_rise', 'half_rec', 'six_rise', 'six_rec']
+            eda_names = ['phasic', 'amps']
+            feats_names += ['count_onsets','count_pks', 'count_half_rec']
             feats_names += [sig_lab + '_'+ aux + '_' + feat for aux in eda_names for feat in stats_names]
             
     return feats_names
 
 
+def get_feat(signal, sig_lab, sampling_rate=1000., feat_type = ['stat']):
 
-def get_feat(signal, sig_lab, sampling_rate=1000., feat_type = ['stat'], windows_len=5, segment=True, save=False):
-
-    print('here')
     feats = np.array([])
     if len(signal) < 1:
         print('HA')

@@ -41,7 +41,7 @@ def annot2patient(db_dir, saving_directory):
                 
                 print(f'\n    --- Checking seizure {str(i+1)} ---')
 
-                for mod in pat.modalities:
+                for mod in pat.modalities.keys():
 
                     list_files = [file for file in os.listdir(pat.path) if (
                         file.endswith('.edf') and mod in file)]
