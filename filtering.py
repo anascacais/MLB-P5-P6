@@ -64,8 +64,8 @@ def filter_pat_data(saving_directory, start_directory, pat, modalities):
                 letter = 's'
                 filtered_df['sz'] = file['sz']
 
-            pickle.dump(filtered_df, open(os.path.join(saving_directory, pat.id, 'filtered_'+ letter +'_data_' + modality), 'wb'))
-            
+            # pickle.dump(filtered_df, open(os.path.join(saving_directory, pat.id, 'filtered_'+ letter +'_data_' + modality), 'wb'))
+            filtered_df.to_hdf(os.path.join(saving_directory, pat.id, 'filtered_'+ letter +'_data_' + modality + '.h5'))
 
 def get_filtered_data(df, fs, resolution='ms'):
 

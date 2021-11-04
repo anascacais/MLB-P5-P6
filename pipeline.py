@@ -19,7 +19,7 @@ db_dir = '/Users/anascacais/OneDrive - Universidade de Lisboa/BD-Seer'
 src_dir = '/Users/anascacais/OneDrive - Universidade de Lisboa/Data'
 
 # choose modalities and patients (for all available, choose None)
-modalities = ['EDA', 'HR', 'BVP', 'TEMP', 'ACC'] 
+modalities = ['EDA', 'HR'] 
 patients = ['MSEL_01870']
 
 # choose time interval to consider as seizure before and after the annotated seizure
