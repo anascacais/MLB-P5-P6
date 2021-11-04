@@ -46,7 +46,7 @@ def filter_pat_data(saving_directory, start_directory, pat, modalities):
             if ('baseline' in file_name and 'filtered_b_data_' + modality in os.listdir(os.path.join(saving_directory, pat.id))):
                 print(f'     modality was already filtered for baseline, this task will be ignored')
                 continue
-            elif ('seizure' in file_name and 'filtered_s_data_' + modality in os.listdir(os.path.join(saving_directory, pat.id))):
+            if ('seizure' in file_name and 'filtered_s_data_' + modality in os.listdir(os.path.join(saving_directory, pat.id))):
                 print(f'     modality was already filtered for seizure, this task will be ignored')
                 continue
             
@@ -80,7 +80,9 @@ def get_filtered_data(df, fs, resolution='ms'):
 
         diff_time = np.append(diff_time, [len(df)-1])
 
-        for diff in diff_time:
+        for d,diff in enumerate(diff_time):
+
+            print(f'    Filtering segment {d+1} of {len(diff_time)}')
             
             end = diff+1
             crop_df = df.iloc[start:end]
@@ -93,6 +95,9 @@ def get_filtered_data(df, fs, resolution='ms'):
             start = diff+1
 
     else:
+
+        print(f'    Filtering the whole segemnt')
+
         for m in [df.columns[0]]:
             crop_signal = df[start:end][m].values.reshape(-1)
             signal = utils.filter_modality(crop_signal, m)

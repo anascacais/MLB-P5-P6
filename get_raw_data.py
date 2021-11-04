@@ -22,8 +22,8 @@ def get_baseline_seizure_data(patients_info_dir, saving_dir):
         if not os.path.isdir(os.path.join(saving_dir, pat.id)):
             os.makedirs(os.path.join(saving_dir, pat.id))
 
-        get_baseline_data(os.path.join(saving_dir, pat.id), pat)
-        get_seizures_data(os.path.join(saving_dir, pat.id), pat)
+        get_baseline_data(patients_info_dir, os.path.join(saving_dir, pat.id), pat)
+        get_seizures_data(patients_info_dir, os.path.join(saving_dir, pat.id), pat)
 
         # remove patient folder if empty
         if os.listdir(os.path.join(saving_dir, pat.id)) == []:
@@ -34,10 +34,10 @@ def get_baseline_seizure_data(patients_info_dir, saving_dir):
 
 # ---------- AUXILIARY FUNCTIONS ---------- #
 
-def get_baseline_data(saving_dir, pat):
+def get_baseline_data(patients_info_dir, saving_dir, pat):
 
     # get the baseline files
-    baseline_files = [file for file in os.listdir(pat.path) if (file not in utils.get_seizure_files(pat) and file.endswith('.edf') and 'Empatica' in file)]
+    baseline_files = [file for file in os.listdir(os.path.join(patients_info_dir)) if (file not in utils.get_seizure_files(pat) and file.endswith('.edf') and 'Empatica' in file)]
 
     if baseline_files == []:
         print('    patient has no baseline Empatica files')
@@ -71,7 +71,7 @@ def get_baseline_data(saving_dir, pat):
             print(f'        file {name}')
 
             try:
-                edf = pyedf.EdfReader(os.path.join(pat.path, name))
+                edf = pyedf.EdfReader(os.path.join(patients_info_dir, pat.id, name))
             except Exception as e:
                 print(e)
 
@@ -82,7 +82,7 @@ def get_baseline_data(saving_dir, pat):
 
 
 
-def get_seizures_data(saving_dir, pat):
+def get_seizures_data(patients_info_dir, saving_dir, pat):
 
     seizure_files = [file for file in utils.get_seizure_files(pat) if 'Empatica' in file]
     
@@ -114,8 +114,11 @@ def get_seizures_data(saving_dir, pat):
 
             name = f'{pat.id} - {date} - {modality}.edf'
             print(f'        file {name}')
-
-            edf = pyedf.EdfReader(os.path.join(pat.path, name))
+            
+            try:
+                edf = pyedf.EdfReader(os.path.join(patients_info_dir, pat.id, name))
+            except Exception as e:
+                print(e)
 
             # check which seizure this file has
             sz = list(pat.seizures.keys())[[name in files for files in [list(d.keys()) for d in  pat.seizures.values()]].index(True)]
