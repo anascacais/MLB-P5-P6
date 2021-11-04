@@ -48,9 +48,9 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
                 continue
             
             segments = segment_df(df, preseizure_, postseizure_, window, overlap, fs, feat_types)
-            segments.to_hdf(os.path.join(saving_dir, patient_id, new_file_name+'.h5'), mode='w', key='df')
-
-            segments.to_hdf(os.path.join(saving_dir, f'features_{filename.split("_")[1]}_{modality}'))
+            
+            if len(segments) != 0:
+                segments.to_hdf(os.path.join(saving_dir, patient_id, new_file_name+'.h5'), mode='w', key='df')
 
 
 # ---------- AUXILIARY FUNCTIONS ---------- #
@@ -70,10 +70,17 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
 
         diff_time = np.append(diff_time, [len(df)-1])
 
-        for diff in diff_time:
+        for d,diff in enumerate(diff_time):
             
+            print(f'    Extracting features for segment {d+1} of {len(diff_time)}')
+
             end = diff+1
             crop_df = df.iloc[start:end]
+
+            if len(crop_df) < window: 
+                print(f'        segment smaller than window: {len(crop_df)} ')
+                continue
+
             aux_feat_df = pd.DataFrame()
             
             
@@ -86,7 +93,7 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
                 
 
             time_ = [crop_df.index[i] for i in range(0, len(crop_df)-window, overlap_window)]
-            print('Signal len - ', len(crop_df))
+            #print('Signal len - ', len(crop_df))
 
             for m in [df.columns[0]]:
                 
@@ -94,33 +101,45 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
                 aux_feat_df = pd.concat((aux_feat_df, extract_feat_seg(aux_df, m, fs, feat_types, window, overlap_window)), axis=1)
             
             aux_feat_df.index = time_
-            aux_feat_df['sz'] = sz_
+            
+            if 'sz' in df.columns:
+                aux_feat_df['sz'] = sz_
 
             feat_df = pd.concat([feat_df, aux_feat_df], axis=0)
 
             start = diff+1
             
     else:
-        if 'sz' in df.columns:
-            sz_ = expand_pre_post_sz(df['sz'].values, preseizure, postseizure)
-            df['sz'] = sz_
-            df = df[df.sz != 0.]
-            sz_ = [sz_[i] for i in range(0, len(df)-window, overlap_window)]
 
-        time_ = [df.index[i] for i in range(0, len(df)-window, overlap_window)]
+        print(f'    Extracting features for the whole segemnt')
 
-        for m in [df.columns[0]]:
-            feat_df = pd.concat((feat_df, extract_feat_seg(df, m, fs, feat_types, window, overlap_window)), axis=1)
+        if len(df) >= window: 
+        
+            if 'sz' in df.columns:
+                sz_ = expand_pre_post_sz(df['sz'].values, preseizure, postseizure)
+                df['sz'] = sz_
+                df = df[df.sz != 0.]
+                sz_ = [sz_[i] for i in range(0, len(df)-window, overlap_window)]
 
-        feat_df.index = time_
-        feat_df['sz'] = sz_
+            time_ = [df.index[i] for i in range(0, len(df)-window, overlap_window)]
+
+            for m in [df.columns[0]]:
+                feat_df = pd.concat((feat_df, extract_feat_seg(df, m, fs, feat_types, window, overlap_window)), axis=1)
+
+            feat_df.index = time_
+
+            if 'sz' in df.columns:
+                feat_df['sz'] = sz_
+        
+        else:
+            print(f'        segment smaller than window: {len(df)} ')
 
     return feat_df
 
 
 def extract_feat_seg(df, modality, fs, feat_types, window, overlap_window):
 
-    print(f'     extracting features for {modality}')
+    #print(f'        extracting features for {modality}')
     
     feature_names = get_feat_names(sig_lab=modality, feat_type=feat_types)
     aux = np.vstack([get_feat(df.values[i: i+ window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types) for i in range(0, len(df)-window, overlap_window)])
