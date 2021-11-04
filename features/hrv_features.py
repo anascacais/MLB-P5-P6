@@ -126,10 +126,11 @@ def hrv_features(nni, sampling_rate=4, time_=True, pointecare_=True):
     if pointecare_:
         sd1, sd2, csi, csv = pointecare_feats(nni)
 
-    lf_pwr, hf_pwr, lf_hf = spectral(nni)
-    kfd = katz_fractal_dim(nni)
-    rec, det, lmax = rqa(nni)
+    # 
+    # 
+    # lf_pwr, hf_pwr, lf_hf = spectral(nni)
+    # kfd = katz_fractal_dim(nni)
+    #rec, det, lmax = rqa(nni)
 
-    feats = np.hstack((rmssd, sdnn, mean_nn, nn50, var, lf_pwr, hf_pwr, lf_hf,
-                       sd1, sd2, csi, csv, kfd, rec, det, lmax))
+    feats = np.hstack((rmssd, sdnn, mean_nn, nn50, var, sd1, sd2, csi, csv))
     return feats

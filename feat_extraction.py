@@ -47,7 +47,7 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
                 print('features already extract for patient ', patient_id, ' are ', new_file_name)
                 continue
             
-            segments = segment_df(df, preseizure_, postseizure_, window, overlap, fs, feat_types)
+            segments = segment_df(df, preseizure_, postseizure_, window, overlap, fs, feat_types[modality])
             
             if len(segments) != 0:
                 segments.to_hdf(os.path.join(saving_dir, patient_id, new_file_name+'.h5'), mode='w', key='df')
@@ -71,6 +71,10 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
         diff_time = np.append(diff_time, [len(df)-1])
 
         for d,diff in enumerate(diff_time):
+
+            if (d % 2 == 0 and 'sz' not in df.columns):
+                # avoid half of baselines
+                continue
             
             print(f'    Extracting features for segment {d+1} of {len(diff_time)}')
 

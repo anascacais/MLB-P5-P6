@@ -42,7 +42,7 @@ def get_feat_names(sig_lab, feat_type):
             feats_names += ['count_onsets', 'count_pks', 'count_half_rec']
             feats_names += [sig_lab + '_'+ aux + '_' + feat for aux in eda_names for feat in stats_names]
         if 'HR' in sig_lab.upper():
-            feats_names += [sig_lab + '_' + aux for aux in ['rms_sd', 'sd_nn', 'mean_nn', 'nn50', 'var', 'sd1', 'sd2', 'csi', 'csv', 'rec', 'det', 'lmax']]
+            feats_names += [sig_lab + '_' + aux for aux in ['rms_sd', 'sd_nn', 'mean_nn', 'nn50', 'var', 'sd1', 'sd2', 'csi', 'csv']]
 
     return feats_names
 
