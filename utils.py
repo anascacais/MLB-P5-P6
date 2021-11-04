@@ -120,5 +120,7 @@ def filter_modality(crop_signal, label, fs=128):
     elif 'acc' in label.lower():
         sm_size = int(0.75 * fs)
         filtered, _ = bp.signals.tools.smoother(signal=signal, kernel="boxzen", size=sm_size, mirror=True)
+    elif 'hr' in label.lower():
+        filtered = (signal*fs) / 60
 
     return filtered

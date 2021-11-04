@@ -19,8 +19,9 @@ def signal_features(signal, sig_lab, sampling_rate):
         feats = eda_features.eda_features(signal, sampling_rate)
         return feats
 
-    elif 'BVP' in sig_lab.upper():
-        return bvp_features.bvp_features(signal, sampling_rate)
+    #elif 'BVP' in sig_lab.upper():
+        #dd = bvp_features.bvp_features(signal, sampling_rate)
+     #   return feats
     elif 'HR' in sig_lab.upper():
         return hrv_features.hrv_features(signal, sampling_rate)
     else:
@@ -38,9 +39,11 @@ def get_feat_names(sig_lab, feat_type):
     if 'signal' in feat_type:
         if 'EDA' in sig_lab.upper():
             eda_names = ['phasic', 'amps']
-            feats_names += ['count_onsets','count_pks', 'count_half_rec']
+            feats_names += ['count_onsets', 'count_pks', 'count_half_rec']
             feats_names += [sig_lab + '_'+ aux + '_' + feat for aux in eda_names for feat in stats_names]
-            
+        if 'HR' in sig_lab.upper():
+            feats_names += [sig_lab + '_' + aux for aux in ['rms_sd', 'sd_nn', 'mean_nn', 'nn50', 'var', 'sd1', 'sd2', 'csi', 'csv', 'rec', 'det', 'lmax']]
+
     return feats_names
 
 

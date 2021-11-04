@@ -7,8 +7,10 @@ import numpy as np
 
 # local
 from biosppy import utils
-from biosppy import bvp
+from biosppy import ppg
 from biosppy import tools as st
+
+from . import statistic_features, hrv_features
 
 
 def bvp_features(signal=None, sampling_rate=1000.):
@@ -31,25 +33,13 @@ def bvp_features(signal=None, sampling_rate=1000.):
 
     # ensure numpy array
     signal = np.array(signal)
-    dict = json.load(open(os.path.join(os.path.abspath('.'), 'features', 'bvp_features_log.json')))
+
     args, names = [], []
 
-    if dict['ons']['use'] == 'yes':
-        # onsets
-        try:
-            ons = bvp.find_onsets(signal, sampling_rate)['onsets']
-        except:
-            ons = None
-        args += [ons]
-        names += ['onsets']
+    ons = ppg.find_onsets_elgendi2013(signal, sampling_rate)['onsets']
+    _, hr = st.get_heart_rate(beats=ons, sampling_rate=sampling_rate, smooth=True, size=3)   
 
-    if dict['hr']['use'] == 'yes':
-        # heart rate
-        try:
-            _, hr = st.get_heart_rate(beats=ons, sampling_rate=sampling_rate, smooth=True, size=3)
-        except:
-            hr = None
-        args += [hr]
-        names += ['hr']
+    hr_stats = statistic_features.signal_stats(hr)
+    hr_ppg_ft = hrv_features.hrv_features(np.diff(ons))
 
     return utils.ReturnTuple(tuple(args), tuple(names))

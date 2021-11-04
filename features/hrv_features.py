@@ -9,7 +9,7 @@ import math
 
 from scipy.signal import welch
 
-@jit
+
 def pointecare_feats(nn):
     x1 = np.asarray(nn[:-1])
     x2 = np.asarray(nn[1:])
@@ -24,7 +24,7 @@ def pointecare_feats(nn):
 
     return sd1, sd2, csi, csv
     
-@jit
+
 def katz_fractal_dim(nn):
     """
     http://tux.uis.edu.co/geofractales/articulosinteres/PDF/waveform.pdf
@@ -59,17 +59,7 @@ def diag_det_lmax(rr):
 
     return diag_points/(np.sum(rr)), long_diag
 
-def lam_calc(rr):
-    dim = len(rr)
-    assert dim == len(rr[0])
-    return_grid = [[] for total in range(2 * len(rr) - 1)]
-    for row in range(len(rr.T)):
-        idx_v = np.argwhere(np.diff(rr.T[row]) == -1).reshape(-1)
-        print(idx_v)
-    aaa
 
-    return lam
-@jit
 def rqa(nni):
     """
     Recurrent Quantification Analysis
@@ -92,17 +82,17 @@ def rqa(nni):
     return rec, det, lmax
 
 
-@jit
+
 def time_domain(nni, sampling_rate=4):
 
     nn50 = len(np.argwhere(abs(np.diff(nni))>0.05*sampling_rate))
-    pnn50 = nn50 / len(nni)
+    # pnn50 = nn50 / len(nni)
     sdnn = nni.std()
     rmssd = ((np.diff(nni) ** 2).mean()) ** 0.5
 
-    return rmssd, sdnn, nn50, pnn50
+    return rmssd, sdnn, nn50 #, pnn50
 
-@jit
+
 def spectral(nni, sampling_rate=4):
 
     frequencies, powers = welch(nni, fs=sampling_rate, scaling='density')
@@ -117,23 +107,9 @@ def spectral(nni, sampling_rate=4):
     return lf_pwr, hf_pwr, lf_pwr/hf_pwr
 
 
-@jit
-def get_diff(sig, window):
-
-    diff_sig = sig.diff().abs().diff().abs()
-
-    window_time = pd.date_range(sig.index[0], sig.index[-1], freq=str(window) + 'S')
-
-    new_diff = pd.DataFrame([diff_sig.between_time(window_time[i].time(),
-                                                   window_time[i + 1].time()).mean()
-                             for i in range(len(window_time) - 1)], index=window_time[1:])
-
-    return new_diff
-
-@jit
-def hrv_features(nni, sampling_rate=4, time_=True, pointecare_=True, diff=True):
+def hrv_features(nni, sampling_rate=4, time_=True, pointecare_=True):
     """
-    names = ['rms_sd', 'sd_nn', 'mean_nn', 'nn50', 'pnn50', 'var', 'sd1',
+    names = ['rms_sd', 'sd_nn', 'mean_nn', 'nn50', 'var', 'sd1',
              'sd2', 'csi', 'csv', 'rec', 'det', 'lmax']
     :param nni:
     :param time_:
@@ -143,7 +119,7 @@ def hrv_features(nni, sampling_rate=4, time_=True, pointecare_=True, diff=True):
 
     if time_:
         # extract rmssd, sdnn, nn50, pnn50, var
-        rmssd, sdnn, nn50, pnn50 = time_domain(nni, sampling_rate)
+        rmssd, sdnn, nn50 = time_domain(nni, sampling_rate)
         mean_nn = nni.mean()
         var = nni.var()
 
@@ -154,6 +130,6 @@ def hrv_features(nni, sampling_rate=4, time_=True, pointecare_=True, diff=True):
     kfd = katz_fractal_dim(nni)
     rec, det, lmax = rqa(nni)
 
-    feats = np.hstack((rmssd, sdnn, mean_nn, nn50, pnn50, var, lf_pwr, hf_pwr, lf_hf,
+    feats = np.hstack((rmssd, sdnn, mean_nn, nn50, var, lf_pwr, hf_pwr, lf_hf,
                        sd1, sd2, csi, csv, kfd, rec, det, lmax))
     return feats
