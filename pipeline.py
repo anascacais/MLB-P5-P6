@@ -19,7 +19,7 @@ db_dir = '/Users/anascacais/OneDrive - Universidade de Lisboa/BD-Seer'
 src_dir = '/Users/anascacais/OneDrive - Universidade de Lisboa/Data'
 
 # choose modalities and patients (for all available, choose None)
-modalities = ['EDA', 'HR'] 
+modalities = ['EDA', 'BVP'] 
 patients = ['MSEL_01870']
 
 # choose time interval to consider as seizure before and after the annotated seizure
@@ -58,4 +58,4 @@ start_time = time.time()
 print('\n---------------------------------------')
 print('Extract baseline and seizure features ...')
 feat_extraction(patients_info_dir, filt_data_dir, features_dir, feat_types, modalities, patients, preseizure, postseizure, window, overlap)
-print('Raw data time ', time.time() - start_time)
+print('Feature extarctio time ', time.time() - start_time)

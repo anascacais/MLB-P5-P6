@@ -43,10 +43,10 @@ def filter_pat_data(saving_directory, start_directory, pat, modalities):
 
         for file_name in file_names:
 
-            if ('baseline' in file_name and 'filtered_b_data_' + modality in os.listdir(os.path.join(saving_directory, pat.id))):
+            if ('baseline' in file_name and f'filtered_b_data_{modality}.h5' in os.listdir(os.path.join(saving_directory, pat.id))):
                 print(f'     modality was already filtered for baseline, this task will be ignored')
                 continue
-            if ('seizure' in file_name and 'filtered_s_data_' + modality in os.listdir(os.path.join(saving_directory, pat.id))):
+            if ('seizure' in file_name and f'filtered_s_data_{modality}.h5' in os.listdir(os.path.join(saving_directory, pat.id))):
                 print(f'     modality was already filtered for seizure, this task will be ignored')
                 continue
             
@@ -65,7 +65,7 @@ def filter_pat_data(saving_directory, start_directory, pat, modalities):
                 filtered_df['sz'] = file['sz']
 
             # pickle.dump(filtered_df, open(os.path.join(saving_directory, pat.id, 'filtered_'+ letter +'_data_' + modality), 'wb'))
-            filtered_df.to_hdf(os.path.join(saving_directory, pat.id, 'filtered_'+ letter +'_data_' + modality + '.h5'))
+            filtered_df.to_hdf(os.path.join(saving_directory, pat.id, 'filtered_'+ letter +'_data_' + modality + '.h5'), mode='w', key='df')
 
 def get_filtered_data(df, fs, resolution='ms'):
 

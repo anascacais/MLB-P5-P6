@@ -28,14 +28,14 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
             os.makedirs(os.path.join(saving_dir, pat.id))
 
         all_pat_files = [f for f in os.listdir(os.path.join(filt_data_dir, pat.id))]
-        select_files = [file for file in all_pat_files if file.split('_')[-1] in modalities]
+        select_files = [file for file in all_pat_files if file.split('_')[-1][:-3] in modalities]
 
         for filename in select_files:
             
 
-            df = pd.read_pickle(os.path.join(filt_data_dir, pat.id, filename))
+            df = pd.read_hdf(os.path.join(filt_data_dir, pat.id, filename))
 
-            modality = filename.split('_')[-1]
+            modality = filename.split('_')[-1][:-3]
             fs = pat.modalities[modality]
 
             preseizure_ = int(preseizure * fs)
@@ -44,7 +44,7 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
             new_file_name = f'features_{filename.split("_")[1]}_{modality}_{window}s_{int(overlap*100)}'
 
             if new_file_name+'.h5' in os.listdir(os.path.join(saving_dir, patient_id)):
-                print('features already extract for patient ', patient_id, ' are ', new_file_name)
+                print('features already extract for patient ', patient_id, ' - ', new_file_name)
                 continue
             
             segments = segment_df(df, preseizure_, postseizure_, window, overlap, fs, feat_types[modality])
@@ -90,14 +90,13 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
             
             if 'sz' in df.columns:
                 sz_ = expand_pre_post_sz(crop_df['sz'].values, preseizure, postseizure)
-                crop_df['sz'] = sz_
+                crop_df = crop_df.assign(sz=sz_)
                 crop_df = crop_df[crop_df.sz != 0.]
                 sz_ = [crop_df.sz[i] for i in range(0, len(crop_df)-window, overlap_window)]
                 
-                
-
+            
             time_ = [crop_df.index[i] for i in range(0, len(crop_df)-window, overlap_window)]
-            #print('Signal len - ', len(crop_df))
+
 
             for m in [df.columns[0]]:
                 
@@ -105,9 +104,10 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
                 aux_feat_df = pd.concat((aux_feat_df, extract_feat_seg(aux_df, m, fs, feat_types, window, overlap_window)), axis=1)
             
             aux_feat_df.index = time_
-            
+
             if 'sz' in df.columns:
                 aux_feat_df['sz'] = sz_
+                #aux_feat_df = aux_feat_df.assign(sz=sz_)
 
             feat_df = pd.concat([feat_df, aux_feat_df], axis=0)
 
@@ -131,13 +131,15 @@ def segment_df(df, preseizure, postseizure, window, overlap, fs, feat_types, res
                 feat_df = pd.concat((feat_df, extract_feat_seg(df, m, fs, feat_types, window, overlap_window)), axis=1)
 
             feat_df.index = time_
+            #feat_df = feat_df.set_index(time_)
 
             if 'sz' in df.columns:
                 feat_df['sz'] = sz_
         
         else:
-            print(f'        segment smaller than window: {len(df)} ')
+            print(f'        segment smaller than window: {len(df)}')
 
+    feat_df = feat_df.dropna()
     return feat_df
 
 
@@ -146,7 +148,19 @@ def extract_feat_seg(df, modality, fs, feat_types, window, overlap_window):
     #print(f'        extracting features for {modality}')
     
     feature_names = get_feat_names(sig_lab=modality, feat_type=feat_types)
-    aux = np.vstack([get_feat(df.values[i: i+ window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types) for i in range(0, len(df)-window, overlap_window)])
+    aux = np.vstack([get_feat(df.values[i: i+ window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types, feat_names=feature_names) for i in range(0, len(df)-window, overlap_window)])
+
+
+    # for i in range(0, len(df)-window, overlap_window):
+
+    #     if len(aux) == 0: 
+    #         aux = get_feat(df.values[i: i + window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types, feat_names=feature_names)
+    #     else: 
+    #         f = get_feat(df.values[i: i + window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types, feat_names=feature_names)
+    #         if len(f) != 0: 
+    #             aux = np.vstack((aux, f))
+
+    #aux = np.vstack([get_feat(df.values[i: i+ window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types) for i in range(0, len(df)-window, overlap_window)])
     
     return pd.DataFrame(aux, columns=feature_names)
 

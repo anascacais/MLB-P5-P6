@@ -47,24 +47,31 @@ def get_feat_names(sig_lab, feat_type):
     return feats_names
 
 
-def get_feat(signal, sig_lab, sampling_rate=1000., feat_type = ['stat']):
+def get_feat(signal, sig_lab, feat_names, sampling_rate=1000., feat_type = ['stat'],):
 
-    feats = np.array([])
-    if len(signal) < 1:
-        print('HA')
- 
-    if 'stat' in feat_type:
-        feats = np.hstack((feats, statistic_features.signal_stats(signal)))
+        feats = np.array([])
+        try:
+            if len(signal) < 1:
+                print('HA')
+        
+            if 'stat' in feat_type:
+                a = statistic_features.signal_stats(signal)
+                feats = np.hstack((feats, a))
 
-    if 'temp' in feat_type:
-        feats = np.hstack((feats, temporal_features.signal_temp(signal, sampling_rate)))
+            if 'temp' in feat_type:
+                b = temporal_features.signal_temp(signal, sampling_rate)
+                feats = np.hstack((feats, b))
 
-    if 'signal' in feat_type:
-        sig_feats = signal_features(signal, sig_lab, sampling_rate)
-        if sig_feats is not None:
-            feats = np.hstack((feats, sig_feats))
+            if 'signal' in feat_type:
+                sig_feats = signal_features(signal, sig_lab, sampling_rate)
+                feats = np.hstack((feats, sig_feats))
+        except Exception as e:
+            feats = np.empty((len(feat_names,)))
+            feats[:] = np.nan
+            print(e)
 
-    return feats
+        return feats
+    
 
 
 def FSE(X_train, y_train, features_descrition, classifier, CV=10):
