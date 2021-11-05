@@ -32,7 +32,6 @@ def feat_extraction(patients_info_dir, filt_data_dir, saving_dir, feat_types, mo
 
         for filename in select_files:
             
-
             df = pd.read_hdf(os.path.join(filt_data_dir, pat.id, filename))
 
             modality = filename.split('_')[-1][:-3]
@@ -150,18 +149,6 @@ def extract_feat_seg(df, modality, fs, feat_types, window, overlap_window):
     feature_names = get_feat_names(sig_lab=modality, feat_type=feat_types)
     aux = np.vstack([get_feat(df.values[i: i+ window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types, feat_names=feature_names) for i in range(0, len(df)-window, overlap_window)])
 
-
-    # for i in range(0, len(df)-window, overlap_window):
-
-    #     if len(aux) == 0: 
-    #         aux = get_feat(df.values[i: i + window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types, feat_names=feature_names)
-    #     else: 
-    #         f = get_feat(df.values[i: i + window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types, feat_names=feature_names)
-    #         if len(f) != 0: 
-    #             aux = np.vstack((aux, f))
-
-    #aux = np.vstack([get_feat(df.values[i: i+ window].reshape(-1,), sig_lab=modality, sampling_rate=fs, feat_type=feat_types) for i in range(0, len(df)-window, overlap_window)])
-    
     return pd.DataFrame(aux, columns=feature_names)
 
 
